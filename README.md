@@ -37,7 +37,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [NirLauncher Package](https://community.chocolatey.org/packages/nirlauncher) | C:\tools\NirLauncher | Installed tool |
 | [7zip](https://community.chocolatey.org/packages/7zip)|  C:\Program Files\7-Zip | Installed tool |
 | [Winrar](https://community.chocolatey.org/packages/winrar) |  C:\ProgramData\Chocolatey | Installed tool |
-| [Notepad++](https://community.chocolatey.org/packages/notepadplusplus) |  C:\ProgramData\Chocolatey | Installed tool |
+| [Notepad++](https://community.chocolatey.org/packages/notepadplusplus) |  C:\Program Files\Notepad++ | Installed tool |
 | [Megatools](https://community.chocolatey.org/packages/megatools/) |  C:\ProgramData\Chocolatey | Installed tool |
 | [WinDBG](https://community.chocolatey.org/packages/windows-sdk-10-version-2004-windbg) |  C:\Program Files (x86)\Windows Kits\ | Installed tool |
 | [WinSCP](https://community.chocolatey.org/packages/winscp) | C:\Program Files (x86)\WinSCP | Installed and added to PATH | 
@@ -89,7 +89,8 @@ The following KAPE plugins/addones were also added:
 | [Kaspersky_TDSSKiller](http://media.kaspersky.com/utilities/VirusUtilities/EN/tdsskiller.exe) | C:\tools\KAPE\Modules\bin\ | Kaspersky_TDSSKiller plugin |
 | [EvtxHussar](https://github.com/yarox24/EvtxHussar/releases/download/1.5/EvtxHussar1.5_windows_amd64.zip ) | C:\tools\KAPE\Modules\bin\ | EvtxHussar plugin |
 | [Nirsoft Tools](https://www.nirsoft.net/) | C:\tools\KAPE\Modules\bin\ | Various Nirsoft plugins as defined by Kape files |
-| [RegRipper](https://github.com/keydet89/RegRipper3.0/archive/refs/heads/master.zip) | C:\tools\KAPE\Modules\bin\ | RegRipper plugin |
+| [TZWorks CAFAE](https://tzworks.com/prototypes/cafae/cafae64.v.0.75.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks CAFAE plugin |
+| [TZWorks evtwalk64](https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.59.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks evtwalk64 plugin |
 
 ---
 # Prerequisites for Azure

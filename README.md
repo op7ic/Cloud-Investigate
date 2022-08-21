@@ -12,7 +12,7 @@ This project contains a set of **Terraform** and **Ansible** scripts for AWS and
 ---
 # Tools included
 
-A global YAML config file, [Azure os-setup.yml](azure/config/os-setup.yml) or [AWS os-setup.yml](aws/config/os-setup.yml), sets the versions of the tools and specific URLs which should be downloaded.
+A global YAML config file, [os-setup.yml](config/os-setup.yml), sets the versions of the tools and specific URLs which should be downloaded.
 
 The following tools are currently deployed in the default configuration of Cloud Investigate:
 

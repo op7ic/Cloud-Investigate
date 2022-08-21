@@ -59,7 +59,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [putty](https://community.chocolatey.org/packages/putty) | C:\Program Files\PuTTY | Installed tool | 
 | [yara](https://community.chocolatey.org/packages/yara) | C:\ProgramData\Chocolatey | Installed and added to PATH | 
 | [powertoys](https://community.chocolatey.org/packages/powertoys) | C:\Program Files\PowerToys | Installed tool | 
-| [virtualmachineconverter](https://community.chocolatey.org/packages/virtualmachineconverter) | C:\ProgramData\Chocolatey | Installed tool | 
+| [virtualmachineconverter](https://community.chocolatey.org/packages/virtualmachineconverter) | C:\Program Files\Microsoft Virtual Machine Converter | Installed tool | 
 | [HashCheck](https://community.chocolatey.org/packages/HashCheck) | C:\Program Files\HashCheck | Installed and added as menu option|  
 | [Brim](https://github.com/brimdata/brim) | C:\tools\brim\ | Installer |  
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
@@ -89,9 +89,9 @@ The following KAPE plugins/addones were also added:
 | [Kaspersky_TDSSKiller](http://media.kaspersky.com/utilities/VirusUtilities/EN/tdsskiller.exe) | C:\tools\KAPE\Modules\bin\ | Kaspersky_TDSSKiller plugin |
 | [EvtxHussar](https://github.com/yarox24/EvtxHussar/releases/download/1.5/EvtxHussar1.5_windows_amd64.zip ) | C:\tools\KAPE\Modules\bin\ | EvtxHussar plugin |
 | [Nirsoft Tools](https://www.nirsoft.net/) | C:\tools\KAPE\Modules\bin\ | Various Nirsoft plugins as defined by Kape files |
+| [RegRipper](https://github.com/keydet89/RegRipper3.0/archive/refs/heads/master.zip) | C:\tools\KAPE\Modules\bin\ | RegRipper plugin |
 | [TZWorks CAFAE](https://tzworks.com/prototypes/cafae/cafae64.v.0.75.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks CAFAE plugin |
 | [TZWorks evtwalk64](https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.59.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks evtwalk64 plugin |
-
 ---
 # Prerequisites for Azure
 

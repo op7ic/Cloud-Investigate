@@ -65,8 +65,9 @@ The following tools are currently deployed in the default configuration of Cloud
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
 | [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | Installed inside of WSL during deployment |
 | [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\Chocolatey | Installed tool |
-| [OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
-| [OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
+| [PassMark OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
+| [PassMark OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
+| [PassMark VolatilityWorkbench](https://www.osforensics.com/tools/volatility-workbench.html) | C:\tools\passmark | Installer | 
 
 The following KAPE plugins/addones were also added:
 

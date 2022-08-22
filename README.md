@@ -1,13 +1,12 @@
 # Purpose
 
-This project contains a set of **Terraform** and **Ansible** scripts for AWS and Azure to create a rapid deployment forensic system. The goal of this project is to provide red/blue teams, developers and IT teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead, in cloud so it can be easily created and removed after investigation is concluded.
+This project contains a set of **Terraform** and **Ansible** scripts for AWS and Azure to create a rapid deployment forensic system. The goal of this project is to provide blue teams, developers and IT teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system can be safely deleted after investigation is concluded.
 
 ---
 # Use cases
 
 * Rapid forensic investigation of a VMDK or triage images which can be downloaded directly onto the VM
-* Basic analysis of malware samples on a throwaway system
-* Memory analysis of captured system
+* Basic analysis of malware and memory samples on a throwaway system
 
 ---
 # Tools included
@@ -65,7 +64,9 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
 | [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | Installed inside of WSL during deployment |
-| [Docker Desktop](https://community.chocolatey.org/packages/docker-desktop) | C:\Program Files\Docker | Installed tool |
+| [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\Chocolatey | Installed tool |
+| [OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
+| [OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
 
 The following KAPE plugins/addones were also added:
 

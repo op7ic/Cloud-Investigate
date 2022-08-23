@@ -24,7 +24,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Arsenal Hibernation Recon](https://mega.nz/file/Kl4AzBTI#gEWZCXQPzVjyuCwfMVvePVsAwl3_IZ0LRpeY0AkGL-c) | C:\Tools\ArsenalTools\ | Installer |
 | [Arsenal HIBN Recon](https://mega.nz/file/i04RjYJI#yqyrgECgUjKxwGSCsvx-fhvwkICGTr2z7OihTJoeWys) | C:\Tools\ArsenalTools\ | Installer  |
 | [Arsenal ODC Recon](https://mega.nz/file/604lWb4Z#Tn3ePIlMaGOSmTfuCMKaEeLRyTU0S4uCekZQJzKttCQ) | C:\Tools\ArsenalTools\ | Installer |
-| [Burp Community Edition](https://portswigger-cdn.net/burp/releases/download?product=community&version=2022.7.1&type=WindowsX64) | C:\Tools\BurpSuite\ | Installer |
+| [Burp Community Edition](https://portswigger-cdn.net/burp/releases/download?product=community&version=2022.7.1&type=WindowsX64) | C:\Program Files\BurpSuiteCommunity\ | Installed tool |
 | [Fireeye Redline](https://fireeye.market/apps/211364) | C:\Tools\MandiantTools\ | Installer |
 | [Fireeye Memoryze](https://fireeye.market/apps/211368) | C:\Tools\MandiantTools\ | Installer  |
 | [Fireeye Highlighter](https://fireeye.market/apps/211376) | C:\Tools\MandiantTools\ | Installer  |
@@ -94,6 +94,7 @@ The following KAPE plugins/addones were also added:
 | [RegRipper](https://github.com/keydet89/RegRipper3.0/archive/refs/heads/master.zip) | C:\tools\KAPE\Modules\bin\ | RegRipper plugin |
 | [TZWorks CAFAE](https://tzworks.com/prototypes/cafae/cafae64.v.0.75.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks CAFAE plugin |
 | [TZWorks evtwalk64](https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.59.win.zip) | C:\tools\KAPE\Modules\bin\ | TZWorks evtwalk64 plugin |
+| [NTFS Log Tracker v1.7 CMD](https://drive.google.com/u/0/uc?id=12Xzp0GW9KqaejFrK7ewGYzKWNEjRgP1P&export=download) | C:\tools\KAPE\Modules\bin\ | NTFS Log Tracker v1.7 CMD plugin |
 ---
 # Prerequisites for Azure
 

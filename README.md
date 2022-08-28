@@ -1,6 +1,6 @@
 # Purpose
 
-This project contains a set of **Terraform** and **Ansible** scripts for AWS and Azure to create a rapid deployment forensic system. The goal of this project is to provide blue teams, developers and IT teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system can be safely deleted after investigation is concluded.
+This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create disposable in-cloud forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
 
 ---
 # Use cases
@@ -43,7 +43,6 @@ The following tools are currently deployed in the default configuration of Cloud
 | [EricZimmerman Tools](https://ericzimmerman.github.io/#!index.md) |  C:\tools\ericzimmermantools | Unzipped tool suite  |
 | [wireshark](https://community.chocolatey.org/packages/wireshark) |  C:\Program Files\Wireshark | Installed and added to PATH | 
 | [ext2fsd](https://community.chocolatey.org/packages/ext2fsd) |  C:\Program Files\Ext2Fsd | Installed and added to PATH | 
-| [OSFmount](https://community.chocolatey.org/packages/osfmount) | C:\Program Files\OSFMount | Installed and added to PATH | 
 | [Firefox Browser](https://www.mozilla.org/en-US/firefox/new/) | C:\Program Files\Mozilla Firefox | Installed tool |
 | [Chrome Browser](https://www.google.com/chrome/) | C:\Program Files\Google | Installed tool | 
 | [Python3.10](https://community.chocolatey.org/packages/python) | C:\Python310 | Installed and added to PATH | 
@@ -63,11 +62,12 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Brim](https://github.com/brimdata/brim) | C:\Users\<user>\AppData\Local\Programs\brim\ | Installed tool |  
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
-| [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | Installed inside of WSL during deployment |
+| [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | Installed inside of WSL during deployment. Note: Due to time it takes to deploy SIFT, the installation is left to run in the background in WSL. |
 | [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\Chocolatey | Installed tool |
 | [PassMark OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
 | [PassMark OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
 | [PassMark VolatilityWorkbench](https://www.osforensics.com/tools/volatility-workbench.html) | C:\tools\passmark | Installer | 
+| [Secure remove contex menu using sDelete64](https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html) | C:\tools\sdelete.reg | Installed tool | 
 
 The following KAPE plugins/addones were also added:
 
@@ -119,7 +119,7 @@ sudo apt install ansible
 
 # Step 4 - Finally install python and various packages needed for remote connections and other activities
 sudo apt install python3 python3-pip
-pip3 install pywinrm requests msrest msrestazure azure-cli
+pip3 install pywinrm requests msrest msrestazure azure-cli requests-ntlm
 ```
 
 # Prerequisites for AWS
@@ -143,7 +143,7 @@ sudo apt update
 sudo apt install ansible
 
 # Step 4 - Finally install python and various packages needed for remote connections and other activities
-sudo apt install python3 python3-pip pywinrm requests
+sudo apt install python3 python3-pip pywinrm requests requests-ntlm
 ```
 
 # Building and Deploying Cloud Investigate system

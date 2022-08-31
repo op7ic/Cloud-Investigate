@@ -172,9 +172,9 @@ start_time=`date +%s` && terraform apply -auto-approve && end_time=`date +%s` &&
 
 # Deploying different OS versions or limiting the number of created hosts
 
-A global YAML config file, [Azure os-setup.yml](azure/config/os-setup.yml) or [AWS os-setup.yml](aws/config/os-setup.yml), sets the type of operating system, SKU, AMI and VM size used for the deployment of the VMs. 
+A global YAML config file, [Azure variables.tf](azure/variables.tf) or [AWS variables.tf](aws/variables.tf), sets the type of operating system, SKU, AMI and VM size used for the deployment of the VMs. 
 
-Commands ```az vm image list``` (Azure) or ```aws ec2 describe-images``` (AWS) can be used to identify various OS versions so that global operating system file ([Azure os-setup.yml](azure/config/os-setup.yml) or [AWS os-setup.yml](aws/config/os-setup.yml) can be modified with the correspodning SKU or AMI. Examples of commands helping to identify specific AMI/SKU can be found below.
+Commands ```az vm image list``` (Azure) or ```aws ec2 describe-images``` (AWS) can be used to identify various OS versions so that global operating system file ([Azure variables.tf](azure/variables.tf) or [AWS variables.tf](aws/variables.tf) can be modified with the correspodning SKU or AMI. Examples of commands helping to identify specific AMI/SKU can be found below.
 
 ```
 # Azure
@@ -196,7 +196,7 @@ az vm image list --publisher Canonical --all -o table
 aws ec2 describe-images --owners amazon --filters Name=root-device-type,Values=ebs Name=architecture,Values=x86_64 Name=name,Values=*Windows_Server*English*Base* --query 'Images[].{ID:ImageId,Name:Name,Created:CreationDate}' --region us-east-1
 ```
 
-Please note that Windows desktop (i.e. Windows 10/11) is currently not supported on AWS EC2 without a custom AMI, so the AWS version of Cloud-Investigate does not support its deployment, as it relies on the pre-existing images. That said, [AWS os-setup.yml](aws/os-setup.yml) can be easily modified to include a reference to custom AMIs.
+Please note that Windows desktop (i.e. Windows 10/11) is currently not supported on AWS EC2 without a custom AMI, so the AWS version of Cloud-Investigate does not support its deployment, as it relies on the pre-existing images. That said, [AWS variables.tf](aws/variables.tf) can be easily modified to include a reference to custom AMIs.
 
 # Changing network ranges and deployment location
 
@@ -218,7 +218,6 @@ terraform apply -auto-approve -var="region=East US" -var="windows_server_subnet_
 # Use East US and change Windows Workstation or Server ranges for AWS
 terraform apply -auto-approve -var="region=us-east-1a" -var="windows_server_subnet_cidr=10.0.0.0/24"
 ```
-
 ---
 # Firewall Configuration
 

@@ -62,7 +62,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Brim](https://github.com/brimdata/brim) | C:\Users\<user>\AppData\Local\Programs\brim\ | Installed tool |  
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
-| [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | Installed inside of WSL during deployment. Note: Due to time it takes to deploy SIFT, the installation is left to run in the background in WSL. |
+| [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | N/A | C:\Linux\download\ | Installer |
 | [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\Chocolatey | Installed tool |
 | [PassMark OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
 | [PassMark OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 

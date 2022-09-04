@@ -1,6 +1,6 @@
 # Purpose
 
-This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create disposable in-cloud forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
+This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create disposable cloud forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
 
 ---
 # Use cases
@@ -58,7 +58,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [yara](https://community.chocolatey.org/packages/yara) | C:\ProgramData\Chocolatey | Installed and added to PATH | 
 | [powertoys](https://community.chocolatey.org/packages/powertoys) | C:\Program Files\PowerToys | Installed tool | 
 | [virtualmachineconverter](https://community.chocolatey.org/packages/virtualmachineconverter) | C:\Program Files\Microsoft Virtual Machine Converter | Installed tool | 
-| [HashCheck](https://community.chocolatey.org/packages/HashCheck) | C:\Program Files\HashCheck | Installed and added as menu option|  
+| [HashCheck](https://community.chocolatey.org/packages/HashCheck) | C:\Program Files\HashCheck | Installed and added as a menu option |  
 | [Brim](https://github.com/brimdata/brim) | C:\Users\<user>\AppData\Local\Programs\brim\ | Installed tool |  
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
@@ -67,7 +67,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [PassMark OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
 | [PassMark OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
 | [PassMark VolatilityWorkbench](https://www.osforensics.com/tools/volatility-workbench.html) | C:\tools\passmark | Installer | 
-| [Secure remove contex menu using sDelete64](https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html) | C:\tools\sdelete.reg | Installed tool | 
+| [Secure remove contex menu using sDelete64](https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html) | C:\tools\sdelete.reg | Installed and added as a menu option | 
 
 The following KAPE plugins/addones were also added:
 
@@ -151,11 +151,13 @@ sudo apt install python3 python3-pip pywinrm requests requests-ntlm
 Once all the [prerequisites](#prerequisites-for-azure) are installed, perform the following series of steps:
 ```
 # Log in to Azure or AWS from command line to ensure that the access token is valid or credentials are added for AWS:
-az login or use aws configure 
+az login # For Azure
+aws configure # For AWS
 
 # Clone Repository and move to BlueTeam.Lab folder:
 git clone https://github.com/op7ic/Cloud-Investigate.git
-cd Cloud-Investigate/azure # or cd Cloud-Investigate/aws
+cd Cloud-Investigate/azure # For Azure
+cd Cloud-Investigate/aws # For AWS
 
 # Initialize Terraform and begin planning:
 terraform init && terraform plan

@@ -1,6 +1,6 @@
 # Purpose
 
-This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create disposable cloud forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
+This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create a disposable, cloud-based forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
 
 ---
 # Use cases

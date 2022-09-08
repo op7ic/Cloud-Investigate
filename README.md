@@ -157,7 +157,7 @@ Once all the [prerequisites](#prerequisites-for-azure) are installed, perform th
 az login # For Azure
 aws configure # For AWS
 
-# Clone Repository and move to BlueTeam.Lab folder:
+# Clone Repository and move to Cloud-Investigate folder:
 git clone https://github.com/op7ic/Cloud-Investigate.git
 cd Cloud-Investigate/azure # For Azure
 cd Cloud-Investigate/aws # For AWS

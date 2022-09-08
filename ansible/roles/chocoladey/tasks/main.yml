@@ -1,0 +1,213 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+
+
+############################################################
+# Install chocoladey and various packages. Tag: chocoladey # 
+############################################################
+--- 
+- name: Attempt to deploy chocoladey. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_chocoladey_installer_counter: "{{ 0 if include_chocoladey_installer_counter is undefined else include_chocoladey_installer_counter|default(0)|int + 1 }}"
+      tags: chocoladey
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: chocoladey
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: chocoladey
+
+    - name: Gather remote facts
+      setup: {}
+      tags: chocoladey 
+      
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: chocoladey
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: chocoladey
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      tags: chocoladey 
+      
+    - name: Ensure Chocolatey itself is installed, using community repo for the bootstrap
+      win_chocolatey:
+        name: chocolatey
+      tags: chocoladey
+      
+    - name: Ensure Chocolatey packages are installed based on config file
+      win_chocolatey:
+        name: "{{ item }}"
+      with_items: "{{ config_file.chocoladey_packages }}"
+      ignore_errors: yes
+      tags: chocoladey
+
+    - name: Find Python installation
+      raw: Get-ChildItem -Path C:\ -Filter python.exe -Recurse -ErrorAction SilentlyContinue -Force | Select -First 1 | %{$_.DirectoryName}
+      register: python_location
+      ignore_errors: yes 
+      tags: chocoladey
+
+    - name: Ensure Python Path is present in enviroment
+      ansible.windows.win_powershell: 
+        script: |
+         $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
+         $newpath = "$oldpath;{{ python_location.stdout }};{{ python_location.stdout }}\Scripts\"
+         Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value $newPath -Force
+         Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH   
+         # source: https://gist.github.com/alphp/78fffb6d69e5bb863c76bbfc767effda
+         Add-Type -Namespace Win32 -Name NativeMethods -MemberDefinition @"
+         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+         public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+         "@
+         function Send-SettingChange {
+         $HWND_BROADCAST = [IntPtr] 0xffff;
+         $WM_SETTINGCHANGE = 0x1a;
+         $result = [UIntPtr]::Zero
+         [void] ([Win32.Nativemethods]::SendMessageTimeout($HWND_BROADCAST, $WM_SETTINGCHANGE, [UIntPtr]::Zero, "Environment", 2, 5000, [ref] $result))
+         }
+         Send-SettingChange
+      ignore_errors: yes 
+      tags: chocoladey 
+      
+    - name: Refresh variables
+      ansible.windows.win_command: 'cmd /c set PATH=C'
+      ignore_errors: yes
+      tags: chocoladey
+
+    - name: Run refreshenv for PowerShell
+      ansible.windows.win_powershell: 
+        script: |
+          # source: https://raw.githubusercontent.com/badrelmers/RefrEnv/main/refrenv.ps1
+          function Get-EnvironmentVariableNames([System.EnvironmentVariableTarget] $Scope) {
+          switch ($Scope) {
+          'User' { Get-Item 'HKCU:\Environment' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property }
+          'Machine' { Get-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' | Select-Object -ExpandProperty Property }
+          'Process' { Get-ChildItem Env:\ | Select-Object -ExpandProperty Key }
+          default { throw "Unsupported environment scope: $Scope" } } }
+          function Get-EnvironmentVariable {
+          [CmdletBinding()]
+          [OutputType([string])]
+          param(
+          [Parameter(Mandatory=$true)][string] $Name,
+          [Parameter(Mandatory=$true)][System.EnvironmentVariableTarget] $Scope,
+          [Parameter(Mandatory=$false)][switch] $PreserveVariables = $false,
+          [parameter(ValueFromRemainingArguments = $true)][Object[]] $ignoredArguments
+          )
+          [string] $MACHINE_ENVIRONMENT_REGISTRY_KEY_NAME = "SYSTEM\CurrentControlSet\Control\Session Manager\Environment\";
+          [Microsoft.Win32.RegistryKey] $win32RegistryKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey($MACHINE_ENVIRONMENT_REGISTRY_KEY_NAME)
+          if ($Scope -eq [System.EnvironmentVariableTarget]::User) {
+          [string] $USER_ENVIRONMENT_REGISTRY_KEY_NAME = "Environment";
+          [Microsoft.Win32.RegistryKey] $win32RegistryKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($USER_ENVIRONMENT_REGISTRY_KEY_NAME)
+          } elseif ($Scope -eq [System.EnvironmentVariableTarget]::Process) {
+          return [Environment]::GetEnvironmentVariable($Name, $Scope)
+          }
+          [Microsoft.Win32.RegistryValueOptions] $registryValueOptions = [Microsoft.Win32.RegistryValueOptions]::None
+          if ($PreserveVariables) {
+          Write-Verbose "Choosing not to expand environment names"
+          $registryValueOptions = [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
+          }
+          [string] $environmentVariableValue = [string]::Empty
+          try {
+          #Write-Verbose "Getting environment variable $Name"
+          if ($win32RegistryKey -ne $null) {
+          # Some versions of Windows do not have HKCU:\Environment
+          $environmentVariableValue = $win32RegistryKey.GetValue($Name, [string]::Empty, $registryValueOptions)
+          }
+          } catch {
+          Write-Debug "Unable to retrieve the $Name environment variable. Details: $_"
+          } finally {
+          if ($win32RegistryKey -ne $null) {
+          $win32RegistryKey.Close()
+          }
+          }
+          if ($environmentVariableValue -eq $null -or $environmentVariableValue -eq '') {
+          $environmentVariableValue = [Environment]::GetEnvironmentVariable($Name, $Scope)
+          }
+          return $environmentVariableValue
+          }
+          function Update-SessionEnvironment {
+          $refreshEnv = $true
+          $invocation = $MyInvocation
+          if ($invocation.InvocationName -eq 'refreshenv') {
+          $refreshEnv = $true
+          }
+          if ($refreshEnv) {
+          Write-Output 'Refreshing environment variables from the registry for powershell.exe. Please wait...'
+          } else {
+          Write-Verbose 'Refreshing environment variables from the registry.'
+          }
+          $userName = $env:USERNAME
+          $architecture = $env:PROCESSOR_ARCHITECTURE
+          $psModulePath = $env:PSModulePath
+          $ScopeList = 'Process', 'Machine'
+          if ($userName -notin 'SYSTEM', "${env:COMPUTERNAME}`$") {
+          $ScopeList += 'User'
+          }
+          foreach ($Scope in $ScopeList) {
+          Get-EnvironmentVariableNames -Scope $Scope |
+          ForEach-Object {
+          Set-Item "Env:$_" -Value (Get-EnvironmentVariable -Scope $Scope -Name $_)
+          }
+          }
+          $paths = 'Machine', 'User' |
+          ForEach-Object {
+          (Get-EnvironmentVariable -Name 'PATH' -Scope $_) -split ';'
+          } |
+          Select-Object -Unique
+          $Env:PATH = $paths -join ';'
+          $env:PSModulePath = $psModulePath
+          if ($userName) { $env:USERNAME = $userName; }
+          if ($architecture) { $env:PROCESSOR_ARCHITECTURE = $architecture; }
+          if ($refreshEnv) {
+          Write-Output 'Finished'
+          }
+          }
+          Update-SessionEnvironment   
+      ignore_errors: yes
+      tags: chocoladey 
+
+  rescue:
+    - include_tasks: 
+        file: roles/chocoladey/tasks/main.yml
+        apply:
+          tags:
+            - chocoladey
+      when: include_chocoladey_installer_counter|int < include_max|default(10)|int
+      tags: chocoladey
+      
+    - fail:
+        msg: Failed to install chocoladey after 10 attempts
+      when: include_chocoladey_installer_counter|int >= include_max|default(10)|int
+      tags: chocoladey
+  tags: chocoladey

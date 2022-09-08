@@ -1,0 +1,301 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+
+
+############################################################
+# Configure winrm and other baseline items. Tag: baseline  # 
+############################################################
+--- 
+- name: Attempt to deploy baseline. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_baseline_installer_counter: "{{ 0 if include_baseline_installer_counter is undefined else include_baseline_installer_counter|default(0)|int + 1 }}"
+      tags: baseline
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: baseline
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: baseline
+      
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: baseline
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: baseline
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      ignore_unreachable: yes
+      tags: baseline 
+      
+    # Doing this twice just in case one of them errors our after clearing unreachable hosts on AWS
+    - name: Config Defender exception for Chocolatey, NirSoft and WSL locations
+      ansible.windows.win_powershell:
+        script: |
+          Add-MpPreference -ExclusionPath "C:\ProgramData\Chocolatey\*"
+          Add-MpPreference -ExclusionPath "C:\tools\NirLauncher\*"
+          Add-MpPreference -ExclusionPath "C:\Linux\*"
+      ignore_unreachable: yes
+      tags: baseline
+
+    - name: Config Defender exception for Chocolatey, NirSoft and WSL locations
+      ansible.windows.win_powershell:
+        script: |
+          Add-MpPreference -ExclusionPath "C:\ProgramData\Chocolatey\*"
+          Add-MpPreference -ExclusionPath "C:\tools\NirLauncher\*"
+          Add-MpPreference -ExclusionPath "C:\Linux\*"
+      ignore_unreachable: yes
+      tags: baseline    
+
+    # https://docs.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#privacy-disableprivacyexperience
+    - name: Disable 'Choose your privacy settings' screen at first logon
+      win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE
+        name: DisablePrivacyExperience
+        data: "1"
+        type: dword
+      ignore_errors: yes # For some reason this errors sometimes. Execute but ignore errors. This is not crucial ..
+      tags: baseline
+      
+    # https://docs.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#privacy-disableprivacyexperience
+    - name: Disable 'Choose your privacy settings' screen at first logon
+      win_regedit:
+        path: HKCU:\SOFTWARE\Policies\Microsoft\Windows\OOBE
+        name: DisablePrivacyExperience
+        data: "1"
+        type: dword
+      ignore_errors: yes # For some reason this errors sometimes. Execute but ignore errors. This is not crucial ..
+      tags: baseline
+
+    - name: Turn UAC off
+      win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\system
+        name: EnableLUA
+        data: 0
+        type: dword
+        state: present
+      register: uac_result
+      tags: baseline
+      
+    - name: Disable Windows Firewall
+      win_firewall:
+        state: disabled
+        profiles:
+        - Domain
+        - Private
+        - Public
+      tags: baseline
+
+    # We already have WinRM at this point but invoking ConfigureRemotingForAnsible just in case. All this will do is to setup FW rules and create SSL cert. 
+    - name: Download ConfigureRemotingForAnsible
+      win_get_url:
+        url: "https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"
+        dest: C:\windows\temp\ConfigureRemotingForAnsible.ps1
+      tags: baseline 
+    
+    - name: Run ConfigureRemotingForAnsible
+      win_shell: cmd.exe /c powershell.exe -nop -ExecutionPolicy ByPass -File C:\windows\temp\ConfigureRemotingForAnsible.ps1
+      tags: baseline 
+      
+    # As we might have old windows OS boxes, we use different syntax for winrm settings. Some will error out.
+    # These limits should never be hit of course.     
+    - name: set winrm timeouts 1
+      win_shell: cmd.exe /c winrm set winrm/config @{MaxTimeoutms="350000"}
+      ignore_errors: yes
+      tags: baseline
+      
+    - name: set winrm timeouts 2
+      win_shell: cmd.exe /c winrm set winrm/config/service @{MaxConcurrentOperationsPerUser="500"}
+      ignore_errors: yes
+      tags: baseline
+      
+    - name: set winrm timeouts 3
+      win_shell: cmd.exe /c winrm set winrm/config/Service @{MaxConcurrentOperations="500"}
+      ignore_errors: yes
+      tags: baseline
+      
+    - name: set winrm timeouts 4
+      win_shell: cmd.exe /c winrm set winrm/config/service @{AllowUnencrypted="true"}
+      ignore_errors: yes  
+      tags: baseline
+      
+    - name: set winrm timeouts 5
+      win_shell: cmd.exe /c winrm set winrm/config/winrs @{MaxShellsPerUser="400"}
+      ignore_errors: yes 
+      tags: baseline  
+      
+    - name: set winrm timeouts 6
+      win_shell: cmd.exe /c winrm set winrm/config/winrs @{MaxConcurrentUsers="300"}
+      ignore_errors: yes   
+      tags: baseline      
+      
+    - name: set winrm timeouts 7
+      win_shell: cmd.exe /c winrm set winrm/config/winrs @{MaxMemoryPerShellMB="512"}
+      ignore_errors: yes 
+      tags: baseline
+
+    - name: Ensure user can RDP to the server
+      win_group_membership:
+        name: Remote Desktop Users
+        members: "{{ config_file.local_admin_credentials.username }}"
+        state: present
+      # Keep trying
+      retries: 4
+      delay: 1
+      ignore_errors: yes # We do this just in case of re-run for workstation build process
+      register: rdp_users_state
+      tags: baseline      
+
+    - name: Ensure the required NuGet package provider version is installed
+      ansible.windows.win_shell: Find-PackageProvider -Name Nuget -ForceBootstrap -IncludeDependencies -Force
+      tags: baseline
+     
+    - name: Add a powershell module for unzipping and untarring
+      win_psmodule:
+        name: pscx
+        allow_clobber: yes
+        state: present
+      tags: baseline
+
+    - name: Disabling ServerManager Task
+      ansible.windows.win_powershell: 
+        script: |
+            Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose
+      ignore_errors: yes 
+      tags: baseline
+
+    - name: Run refreshenv for PowerShell
+      ansible.windows.win_powershell: 
+        script: |
+          # source: https://raw.githubusercontent.com/badrelmers/RefrEnv/main/refrenv.ps1
+          function Get-EnvironmentVariableNames([System.EnvironmentVariableTarget] $Scope) {
+          switch ($Scope) {
+          'User' { Get-Item 'HKCU:\Environment' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Property }
+          'Machine' { Get-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' | Select-Object -ExpandProperty Property }
+          'Process' { Get-ChildItem Env:\ | Select-Object -ExpandProperty Key }
+          default { throw "Unsupported environment scope: $Scope" } } }
+          function Get-EnvironmentVariable {
+          [CmdletBinding()]
+          [OutputType([string])]
+          param(
+          [Parameter(Mandatory=$true)][string] $Name,
+          [Parameter(Mandatory=$true)][System.EnvironmentVariableTarget] $Scope,
+          [Parameter(Mandatory=$false)][switch] $PreserveVariables = $false,
+          [parameter(ValueFromRemainingArguments = $true)][Object[]] $ignoredArguments
+          )
+          [string] $MACHINE_ENVIRONMENT_REGISTRY_KEY_NAME = "SYSTEM\CurrentControlSet\Control\Session Manager\Environment\";
+          [Microsoft.Win32.RegistryKey] $win32RegistryKey = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey($MACHINE_ENVIRONMENT_REGISTRY_KEY_NAME)
+          if ($Scope -eq [System.EnvironmentVariableTarget]::User) {
+          [string] $USER_ENVIRONMENT_REGISTRY_KEY_NAME = "Environment";
+          [Microsoft.Win32.RegistryKey] $win32RegistryKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($USER_ENVIRONMENT_REGISTRY_KEY_NAME)
+          } elseif ($Scope -eq [System.EnvironmentVariableTarget]::Process) {
+          return [Environment]::GetEnvironmentVariable($Name, $Scope)
+          }
+          [Microsoft.Win32.RegistryValueOptions] $registryValueOptions = [Microsoft.Win32.RegistryValueOptions]::None
+          if ($PreserveVariables) {
+          Write-Verbose "Choosing not to expand environment names"
+          $registryValueOptions = [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
+          }
+          [string] $environmentVariableValue = [string]::Empty
+          try {
+          #Write-Verbose "Getting environment variable $Name"
+          if ($win32RegistryKey -ne $null) {
+          # Some versions of Windows do not have HKCU:\Environment
+          $environmentVariableValue = $win32RegistryKey.GetValue($Name, [string]::Empty, $registryValueOptions)
+          }
+          } catch {
+          Write-Debug "Unable to retrieve the $Name environment variable. Details: $_"
+          } finally {
+          if ($win32RegistryKey -ne $null) {
+          $win32RegistryKey.Close()
+          }
+          }
+          if ($environmentVariableValue -eq $null -or $environmentVariableValue -eq '') {
+          $environmentVariableValue = [Environment]::GetEnvironmentVariable($Name, $Scope)
+          }
+          return $environmentVariableValue
+          }
+          function Update-SessionEnvironment {
+          $refreshEnv = $true
+          $invocation = $MyInvocation
+          if ($invocation.InvocationName -eq 'refreshenv') {
+          $refreshEnv = $true
+          }
+          if ($refreshEnv) {
+          Write-Output 'Refreshing environment variables from the registry for powershell.exe. Please wait...'
+          } else {
+          Write-Verbose 'Refreshing environment variables from the registry.'
+          }
+          $userName = $env:USERNAME
+          $architecture = $env:PROCESSOR_ARCHITECTURE
+          $psModulePath = $env:PSModulePath
+          $ScopeList = 'Process', 'Machine'
+          if ($userName -notin 'SYSTEM', "${env:COMPUTERNAME}`$") {
+          $ScopeList += 'User'
+          }
+          foreach ($Scope in $ScopeList) {
+          Get-EnvironmentVariableNames -Scope $Scope |
+          ForEach-Object {
+          Set-Item "Env:$_" -Value (Get-EnvironmentVariable -Scope $Scope -Name $_)
+          }
+          }
+          $paths = 'Machine', 'User' |
+          ForEach-Object {
+          (Get-EnvironmentVariable -Name 'PATH' -Scope $_) -split ';'
+          } |
+          Select-Object -Unique
+          $Env:PATH = $paths -join ';'
+          $env:PSModulePath = $psModulePath
+          if ($userName) { $env:USERNAME = $userName; }
+          if ($architecture) { $env:PROCESSOR_ARCHITECTURE = $architecture; }
+          if ($refreshEnv) {
+          Write-Output 'Finished'
+          }
+          }
+          Update-SessionEnvironment   
+      ignore_errors: yes
+      tags: baseline 
+
+  rescue:
+    - include_tasks: 
+        file: roles/baseline/tasks/main.yml
+        apply:
+          tags:
+            - baseline
+      when: include_baseline_installer_counter|int < include_max|default(10)|int
+      tags: baseline
+      
+    - fail:
+        msg: Failed to install baseline after 10 attempts
+      when: include_baseline_installer_counter|int >= include_max|default(10)|int
+      tags: baseline
+  tags: baseline

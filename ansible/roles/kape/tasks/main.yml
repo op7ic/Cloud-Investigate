@@ -1,0 +1,470 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+############################################################
+# Install various tools. Tag: tools                        # 
+############################################################
+--- 
+- name: Attempt to deploy tools. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_kape_installer_counter: "{{ 0 if include_kape_installer_counter is undefined else include_kape_installer_counter|default(0)|int + 1 }}"
+      tags: kape
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: kape
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: kape
+
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: kape
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: kape
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      tags: kape 
+
+    - name: Ensure the required NuGet package provider version is installed
+      ansible.windows.win_shell: Find-PackageProvider -Name Nuget -ForceBootstrap -IncludeDependencies -Force
+      tags: kape
+
+    - name: Ensure that we refresh enviroment before calling specific tools
+      ansible.windows.win_shell: refreshenv
+      ignore_errors: yes
+      tags: kape
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install gdown
+      ignore_errors: yes 
+      tags: kape  
+     
+    - name: Add a powershell module for unzipping and untarring
+      win_psmodule:
+        name: pscx
+        allow_clobber: yes
+        state: present
+      tags: kape
+      
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install gdown
+      ignore_errors: yes 
+      tags: kape  
+
+    - name: Creating tools folder in C:\tools just in case
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape
+      
+    - name: Creating tools folder in C:\tools\KAPE
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\KAPE\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape 
+
+    - name: Downloading kape package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.kape }}"
+        dest: C:\tools\KAPE\
+      tags: kape
+
+    - name: Unpacking KAPE package
+      community.windows.win_unzip:
+        src: C:\\tools\\KAPE\\kape.zip
+        dest: C:\\tools\\
+        delete_archive: yes
+      tags: kape 
+      
+    - name: Downloading KAPE-EZToolsAncillaryUpdater
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.KAPE_EZUpader }}"
+        dest: C:\tools\KAPE\ 
+      ignore_errors: yes
+      tags: kape
+
+    - name: Downloading missing kape binaries (v4)
+      ansible.windows.win_powershell: 
+        script: |
+            cd C:\tools\KAPE\; echo "\n" | powershell -windowstyle hidden -exec bypass -nop -c .\KAPE-EZToolsAncillaryUpdater.ps1 4
+      ignore_errors: yes
+      poll: 0
+      async: 8000      
+      tags: kape
+
+    - name: Downloading missing kape binaries (v6)
+      ansible.windows.win_powershell: 
+        script: |
+            cd C:\tools\KAPE\; echo "\n" | powershell -windowstyle hidden -exec bypass -nop -c .\KAPE-EZToolsAncillaryUpdater.ps1 6
+      ignore_errors: yes
+      poll: 0
+      async: 8000
+      tags: kape 
+      
+    - name: Downloading Kape Tool - reg_hunter
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.reg_hunter }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape  
+
+    - name: Aligning reg_hunter tools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\KAPE\Modules\bin\Reghunter\ -ErrorAction SilentlyContinue
+            move C:\tools\KAPE\Modules\bin\reg_hunter-64.exe C:\tools\KAPE\Modules\bin\Reghunter\reg_hunter-64.exe -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape      
+
+    - name: Downloading Kape Tool - SEPparser.exe
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.SEPparser }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape    
+
+    - name: Downloading Kape Tool - srum_dump.exe
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.srum_dump }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape            
+
+    - name: Downloading Kape Tool - OneDriveExplorer
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.OneDriveExplorer }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape  
+      
+    - name: Downloading Kape Tool - hindsight.exe
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.hindsight }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      tags: kape  
+      
+    - name: Downloading Kape Tool - dhparser.exe
+      win_get_url:
+        url:  "{{ config_file.tools.kape_plugins.dhparser }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape  
+      
+    - name: Downloading Kape Tool - CCMRUAFinder_RecentlyUsedApps
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.CCMRUAFinder_RecentlyUsedApps }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape  
+
+    - name: Downloading Kape Tool - BMC-Tools_RDPBitmapCacheParse
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.BMCCacheParse }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape
+      
+    - name: Downloading Kape Tool - sigcheck
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.sigcheck }}"
+        dest: C:\tools\KAPE\Modules\bin\
+      ignore_errors: yes
+      tags: kape
+      
+    - name: Downloading Kape Tool - INDXRipper
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.INDXRipper }}"
+        dest: C:\tools\KAPE\Modules\bin\INDXRipper.zip
+      ignore_errors: yes
+      tags: kape
+            
+    - name: Downloading Kape Tool - NTFS Log Tracker v1.7 CMD
+      ansible.windows.win_powershell:
+        script: |
+          Md "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\"
+          gdown "https://drive.google.com/u/0/uc?id=12Xzp0GW9KqaejFrK7ewGYzKWNEjRgP1P&export=download" -O "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD.zip"
+      ignore_errors: yes 
+      tags: kape     
+
+    - name: Unpacking Kape Tool - NTFS Log Tracker v1.7 CMD 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD.zip
+        dest: C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\
+        delete_archive: yes
+      tags: kape     
+
+    - name: Aligning Kape Tool - NTFS Log Tracker v1.7 CMD
+      ansible.windows.win_powershell: 
+        script: |
+            move "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\NTFS Log Tracker v1.71 CMD\*" "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\" -ErrorAction SilentlyContin
+            move "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\NTFS_Log_Tracker_CMD.exe" "C:\tools\KAPE\Modules\bin\NTFS Log Tracker v1.6 CMD\NTFS_Log_Tracker_CMD_V1.6.exe"
+      ignore_errors: yes 
+      tags: kape 
+
+    - name: Unpacking  Kape Tool - INDXRipper 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\INDXRipper.zip
+        dest: C:\tools\KAPE\Modules\bin\INDXRipper
+        delete_archive: yes
+      tags: kape     
+
+    - name: Downloading Kape Tool - Chainsaw
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.Chainsaw }}"
+        dest: C:\tools\KAPE\Modules\bin\Chainsaw.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking  Kape Tool - Chainsaw 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\Chainsaw.zip
+        dest: C:\tools\KAPE\Modules\bin\
+        delete_archive: yes
+      tags: kape  
+
+    - name: Aligning Chainsaw tools
+      ansible.windows.win_powershell: 
+        script: |
+            move C:\tools\KAPE\Modules\bin\Chainsaw\chainsaw\* C:\tools\KAPE\Modules\bin\chainsaw\ -ErrorAction SilentlyContinue
+            move C:\tools\KAPE\Modules\bin\Chainsaw\chainsaw_x86_64-pc-windows-msvc.exe C:\tools\KAPE\Modules\bin\Chainsaw\Chainsaw.exe 
+      ignore_errors: yes 
+      tags: kape       
+      
+    - name: Downloading Kape Tool - hayabusa
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.hayabusa }}"
+        dest: C:\tools\KAPE\Modules\bin\hayabusa.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking  Kape Tool - hayabusa 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\hayabusa.zip
+        dest: C:\tools\KAPE\Modules\bin\hayabusa
+        delete_archive: yes
+      tags: kape      
+      
+    - name: Aligning hayabusa tools
+      ansible.windows.win_powershell: 
+        script: |
+            move C:\tools\KAPE\Modules\bin\hayabusa\hayabusa-1.5.0-win-x64.exe C:\tools\KAPE\Modules\bin\hayabusa\hayabusa.exe -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape       
+
+    - name: Downloading Kape Tool - LevelDBDumper 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.LevelDBDumper }}"
+        dest: C:\tools\KAPE\Modules\bin\LevelDBDumper.exe
+      ignore_errors: yes
+      tags: kape
+
+    - name: Downloading Kape Tool - McAfeeStinger 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.McAfeeStinger }}"
+        dest: C:\tools\KAPE\Modules\bin\stinger32.exe
+      ignore_errors: yes
+      tags: kape
+      
+    - name: Aligning McAfeeStinger tools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\KAPE\Modules\bin\McAfeeStinger\ -ErrorAction SilentlyContinue
+            move C:\tools\KAPE\Modules\bin\stinger32.exe C:\tools\KAPE\Modules\bin\McAfeeStinger\stinger32.exe -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape 
+
+    - name: Downloading Kape Tool - Kaspersky_TDSSKiller 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.Kaspersky_TDSSKiller }}"
+        dest: C:\tools\KAPE\Modules\bin\tdsskiller.exe
+      ignore_errors: yes
+      tags: kape
+      
+    - name: Aligning Kaspersky_TDSSKiller tools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\KAPE\Modules\bin\TDSSKiller\ -ErrorAction SilentlyContinue
+            move C:\tools\KAPE\Modules\bin\tdsskiller.exe C:\tools\KAPE\Modules\bin\TDSSKiller\tdsskiller.exe -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape 
+
+    - name: Downloading Kape Tool - EvtxHussar 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.EvtxHussar }}"
+        dest: C:\tools\KAPE\Modules\bin\EvtxHussar.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking Kape Tool - EvtxHussar 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\EvtxHussar.zip
+        dest: C:\tools\KAPE\Modules\bin\EvtxHussar
+        delete_archive: yes
+      tags: kape    
+
+    - name: Aligning EvtxHussar tools
+      ansible.windows.win_powershell: 
+        script: |
+            move C:\tools\KAPE\Modules\bin\EvtxHussar\EvtxHussar\* C:\tools\KAPE\Modules\bin\EvtxHussar -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape    
+
+
+    - name: Downloading Kape Tool - browsinghistoryview  
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.browsinghistoryview }}"
+        dest: C:\tools\KAPE\Modules\bin\browsinghistoryview-x64.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking Kape Tool - browsinghistoryview 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\browsinghistoryview-x64.zip
+        dest: C:\tools\KAPE\Modules\bin\browsinghistoryview-x64
+        delete_archive: yes
+      tags: kape
+
+    - name: Downloading Kape Tool - FullEventLogView 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.FullEventLogView }}"
+        dest: C:\tools\KAPE\Modules\bin\fulleventlogview-x64.zip
+      tags: kape
+
+    - name: Unpacking Kape Tool - FullEventLogView 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\fulleventlogview-x64.zip
+        dest: C:\tools\KAPE\Modules\bin\fulleventlogview-x64
+        delete_archive: yes
+      tags: kape
+
+    - name: Downloading Kape Tool - TurnedOnTimesView 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.TurnedOnTimesView }}"
+        dest: C:\tools\KAPE\Modules\bin\turnedontimesview.zip
+      tags: kape
+      
+    - name: Unpacking Kape Tool - TurnedOnTimesView 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\turnedontimesview.zip
+        dest: C:\tools\KAPE\Modules\bin\turnedontimesview
+        delete_archive: yes
+      tags: kape
+      
+    - name: Downloading Kape Tool - usbdeview 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.usbdeview }}"
+        dest: C:\tools\KAPE\Modules\bin\usbdeview-x64.zip
+      tags: kape
+
+    - name: Unpacking Kape Tool - usbdeview 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\usbdeview-x64.zip
+        dest: C:\tools\KAPE\Modules\bin\usbdeview-x64
+        delete_archive: yes
+      tags: kape
+
+    - name: Aligning Nirsoft tools
+      ansible.windows.win_powershell: 
+        script: |
+            copy C:\tools\KAPE\Modules\bin\usbdeview-x64\* C:\tools\KAPE\Modules\bin\ -ErrorAction SilentlyContinue
+            copy C:\tools\KAPE\Modules\bin\turnedontimesview\* C:\tools\KAPE\Modules\bin\ -ErrorAction SilentlyContinue
+            copy C:\tools\KAPE\Modules\bin\fulleventlogview-x64\* C:\tools\KAPE\Modules\bin\ -ErrorAction SilentlyContinue
+            copy C:\tools\KAPE\Modules\bin\browsinghistoryview-x64\* C:\tools\KAPE\Modules\bin\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape
+
+    - name: Downloading Kape Tool - RegRipper 
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.RegRipper }}"
+        dest: C:\tools\KAPE\Modules\bin\regripper.zip
+      tags: kape
+      
+    - name: Unpacking Kape Tool - RegRipper 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\regripper.zip
+        dest: C:\tools\KAPE\Modules\bin\regripper
+        delete_archive: yes
+      tags: kape
+
+    - name: Aligning regripper tools
+      ansible.windows.win_powershell: 
+        script: |
+            move C:\tools\KAPE\Modules\bin\regripper\RegRipper3.0-master\* C:\tools\KAPE\Modules\bin\regripper\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: kape
+
+    - name: Downloading Kape Tool - TZWorks CAFAE
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.CAFAE }}"
+        dest: C:\tools\KAPE\Modules\bin\cafae64.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking Kape Tool - TZWorks CAFAE 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\cafae64.zip
+        dest: C:\tools\KAPE\Modules\bin\
+        delete_archive: yes
+      ignore_errors: yes
+      tags: kape   
+
+    - name: Downloading Kape Tool - TZWorks evtwalk64
+      win_get_url:
+        url: "{{ config_file.tools.kape_plugins.evtwalk64 }}"
+        dest: C:\tools\KAPE\Modules\bin\evtwalk64.zip
+      ignore_errors: yes
+      tags: kape
+
+    - name: Unpacking Kape Tool - TZWorks evtwalk64 
+      community.windows.win_unzip:
+        src: C:\tools\KAPE\Modules\bin\evtwalk64.zip
+        dest: C:\tools\KAPE\Modules\bin\
+        delete_archive: yes
+      ignore_errors: yes
+      tags: kape       
+              
+  rescue:
+    - include_tasks: 
+        file: roles/kape/tasks/main.yml
+        apply:
+          tags:
+            - kape
+      when: include_kape_installer_counter|int < include_max|default(10)|int
+      tags: kape
+      
+    - fail:
+        msg: Failed to install tools after 10 attempts
+      when: include_kape_installer_counter|int >= include_max|default(10)|int
+      tags: kape
+  tags: kape

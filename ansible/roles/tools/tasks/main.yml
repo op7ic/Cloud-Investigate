@@ -1,0 +1,573 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+############################################################
+# Install various tools. Tag: tools                        # 
+############################################################
+--- 
+- name: Attempt to deploy tools. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_tools_installer_counter: "{{ 0 if include_tools_installer_counter is undefined else include_tools_installer_counter|default(0)|int + 1 }}"
+      tags: tools
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: tools
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: tools
+
+    - name: Gather remote facts
+      setup: {}
+      tags: tools
+
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: tools
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: tools
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      ignore_unreachable: yes
+      tags: tools 
+
+    - name: Ensure that we refresh enviroment before calling specific tools
+      ansible.windows.win_shell: refreshenv
+      ignore_errors: yes
+      tags: tools
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c python -m pip install --upgrade pip
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install gdown
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install wheel
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install pyttsx3
+      ignore_errors: yes 
+      tags: tools 
+      
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install -U setuptools
+      ignore_errors: yes 
+      tags: tools 
+
+    - name: Updating PIP and install various PIP packages
+      ansible.windows.win_shell: cmd.exe /c pip install pywin32 wmi yara-python --upgrade
+      ignore_errors: yes 
+      tags: tools 
+      
+    - name: Creating tools folder in C:\tools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Test for VS Build Tools executable and install
+      ansible.windows.win_package:
+        path: "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+        arguments: --all --quiet --norestart
+        state: present
+      register: vsbuild_executable
+      ignore_errors: yes 
+      tags: tools
+      
+    - name: Creating tools folder in C:\tools\DidierStevensSuite
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\DidierStevensSuite\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading DidierStevensSuite package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.DidierStevensSuite }}"
+        dest: C:\tools\DidierStevensSuite\DidierStevensSuite.zip
+      poll: 0
+      async: 6000
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Creating tools folder in C:\tools\NetworkMiner
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\NetworkMiner\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading NetworkMiner package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.NetworkMiner }}"
+        dest: C:\tools\NetworkMiner\NetworkMiner.zip
+      poll: 0
+      async: 6000
+      ignore_errors: yes 
+      tags: tools
+           
+    - name: Creating tools folder in C:\tools\brim
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\brim\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading Brim package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.brim }}"
+        dest: C:\tools\brim\brim.exe
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Installing Brim package
+      ansible.windows.win_command: cmd /c C:\tools\brim\brim.exe /S
+      ignore_errors: yes 
+      tags: tools    
+
+    - name: Creating tools folder in C:\tools\BurpCommunity
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\BurpCommunity\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+      
+    - name: Downloading BurpCommunity package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.burp }}"
+        dest: C:\tools\BurpCommunity\BurpCommunity.exe
+      tags: tools
+      
+    - name: Installing BurpCommunity package
+      ansible.windows.win_command: cmd /c start /B C:\tools\BurpCommunity\BurpCommunity.exe -q -c
+      ignore_errors: yes 
+      poll: 0
+      async: 12000
+      tags: tools 
+ 
+    - name: Creating tools folder in C:\tools\passmark
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\passmark\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+      
+    - name: Downloading OSForensic package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.OSForensic }}"
+        dest: C:\tools\passmark\osf.exe
+      tags: tools
+
+    - name: Installing OSForensic package
+      ansible.windows.win_command: C:\tools\passmark\osf.exe /VERYSILENT
+      ignore_errors: yes
+      tags: tools  
+     
+    - name: Downloading OSFMount package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.OSFMount }}"
+        dest: C:\tools\passmark\osfmount.exe
+      tags: tools
+
+    - name: Downloading VolatilityWorkbench package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.VolatilityWorkbench }}"
+        dest: C:\tools\passmark\VolatilityWorkbench.zip
+      poll: 0
+      async: 10000
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Installing OSFMount package
+      ansible.windows.win_command: C:\tools\passmark\osfmount.exe /VERYSILENT
+      poll: 0
+      async: 10000
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Creating tools folder in C:\tools\ericzimmermantools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\ericzimmermantools\ -ErrorAction SilentlyContinue
+            Md C:\tools\ericzimmermantools\netv4 -ErrorAction SilentlyContinue
+            Md C:\tools\ericzimmermantools\netv6 -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+      
+    - name: Downloading ericzimmermantools v4 package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.ericzimmermantoolsv4 }}"
+        dest: C:\tools\ericzimmermantools\Allv4.zip
+      tags: tools
+
+    - name: Downloading ericzimmermantools v6 package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.ericzimmermantoolsv6 }}"
+        dest: C:\tools\ericzimmermantools\Allv6.zip
+      tags: tools
+
+    - name: Unpacking ericzimmermantools v4 package
+      community.windows.win_unzip:
+        src: C:\tools\ericzimmermantools\Allv4.zip
+        dest: C:\tools\ericzimmermantools\netv4\
+        delete_archive: yes
+        recurse: yes
+      poll: 0
+      async: 10000
+      tags: tools 
+
+    - name: Unpacking ericzimmermantools v6 package
+      community.windows.win_unzip:
+        src: C:\tools\ericzimmermantools\Allv6.zip
+        dest: C:\tools\ericzimmermantools\netv6\
+        delete_archive: yes
+        recurse: yes
+      poll: 0
+      async: 10000
+      tags: tools       
+
+    - name: Creating tools folder in C:\tools\ArsenalTools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\ArsenalTools\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+      
+    - name: Downloading Aresnal_Image_Mouter
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Aresnal_Image_Mouter }}"
+      ignore_errors: yes
+      poll: 0
+      async: 10000
+      tags: tools
+      
+    - name: Downloading Arsenal_Registry_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_Registry_Recon }}"
+      ignore_errors: yes
+      poll: 0
+      async: 10000
+      tags: tools
+      
+    - name: Downloading Arsenal_Hive_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_Hive_Recon }}"
+      ignore_errors: yes 
+      poll: 0
+      async: 10000
+      tags: tools
+      
+    - name: Downloading Arsenal_Hibernation_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_Hibernation_Recon }}"
+      ignore_errors: yes
+      poll: 0
+      async: 10000      
+      tags: tools
+      
+    - name: Downloading Arsenal_HIBN_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_HIBN_Recon }}"
+      ignore_errors: yes 
+      poll: 0
+      async: 10000
+      tags: tools
+        
+    - name: Downloading Arsenal_ODC_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_ODC_Recon }}"
+      ignore_errors: yes
+      poll: 0
+      async: 6000
+      tags: tools
+      
+    - name: Downloading Arsenal_HIBN_Recon
+      ansible.windows.win_command: cmd /c start /B megatools dl --path C:\tools\ArsenalTools\ "{{ config_file.tools.standalone.Arsenal_HIBN_Recon }}"
+      ignore_errors: yes
+      poll: 0
+      async: 10000
+      tags: tools
+
+    - name: Creating tools folder in C:\tools\MandiantTools
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\MandiantTools\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools    
+
+    - name: Downloading Fireeye_Redline package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.Fireeye_Redline }}"
+        dest: C:\tools\MandiantTools\
+      tags: tools
+      
+    - name: Unpacking Fireeye_Redline package
+      community.windows.win_unzip:
+        src: C:\\tools\\MandiantTools\\sdl-redline.zip
+        dest: C:\\tools\\MandiantTools\\
+        delete_archive: yes
+      poll: 0
+      async: 10000
+      tags: tools 
+      
+    - name: Downloading Fireeye_Memoryze package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.Fireeye_Memoryze }}"
+        dest: C:\tools\MandiantTools\
+      tags: tools
+
+    - name: Unpacking Fireeye_Memoryze package
+      community.windows.win_unzip:
+        src: C:\\tools\\MandiantTools\\sdl-memoryze.zip
+        dest: C:\\tools\\MandiantTools\\
+        delete_archive: yes
+      poll: 0
+      async: 10000
+      tags: tools 
+
+    - name: Downloading Fireeye_Highlighter package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.Fireeye_Highlighter }}"
+        dest: C:\tools\MandiantTools\
+      tags: tools
+
+    - name: Unpacking Fireeye_Highlighter package
+      community.windows.win_unzip:
+        src: C:\\tools\\MandiantTools\\sdl-highlighter.zip
+        dest: C:\\tools\\MandiantTools\\
+        delete_archive: yes
+      poll: 0
+      async: 10000
+      tags: tools 
+
+    - name: Creating tools folder in C:\tools\SysinternalsSuite
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\SysinternalsSuite\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools 
+
+    - name: Downloading SysinternalsSuite package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.Sysinternals }}"
+        dest: C:\tools\SysinternalsSuite\
+      tags: tools
+
+    - name: Unpacking SysinternalsSuite package
+      community.windows.win_unzip:
+        src: C:\\tools\\SysinternalsSuite\\SysinternalsSuite.zip
+        dest: C:\tools\SysinternalsSuite\
+        delete_archive: yes
+      poll: 0
+      async: 10000
+      tags: tools  
+
+    - name: Add registry key for Sdelete along with contex menu
+      ansible.windows.win_command: cmd /c copy NUL C:\\tools\\sdelete.reg
+      tags: tools 
+
+    - name: Downloading Sysinternals Tool - sdelete64
+      win_get_url:
+        url: https://live.sysinternals.com/sdelete64.exe
+        dest: C:\Windows\System32\
+      ignore_errors: yes
+      tags: tools      
+
+    - name: Add registry key for Sdelete contex menu
+      ansible.windows.win_powershell: 
+        script: |
+         #Top of script
+         $text = @"
+         Windows Registry Editor Version 5.00
+         ; Created by: Shawn Brink
+         ; Created on: December 28th 2018
+         ; Tutorial: https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html
+          
+         [HKEY_CLASSES_ROOT\*\shell\SecureDelete]
+           @="Secure Delete"
+           "NoWorkingDirectory"=""
+           "Position"="bottom"
+           "Icon"="imageres.dll,-5320"
+          
+         [HKEY_CLASSES_ROOT\*\shell\SecureDelete\command]
+           @="sdelete64.exe -accepteula -p 2 \"%1\""
+            
+         [HKEY_CLASSES_ROOT\Directory\shell\SecureDelete]
+           @="Secure Delete"
+           "AppliesTo"="NOT (System.ItemPathDisplay:=\"C:\\Users\" OR System.ItemPathDisplay:=\"C:\\ProgramData\" OR System.ItemPathDisplay:=\"C:\\Windows\" OR System.ItemPathDisplay:=\"C:\\Windows.old\" OR System.ItemPathDisplay:=\"C:\\Windows\\System32\" OR System.ItemPathDisplay:=\"C:\\Program Files\" OR System.ItemPathDisplay:=\"C:\\Program Files (x86)\")"
+           "NoWorkingDirectory"=""
+           "Position"="bottom"
+           "Icon"="imageres.dll,-5320"
+          
+         [HKEY_CLASSES_ROOT\Directory\shell\SecureDelete\command]
+           @="sdelete64.exe -accepteula -p 2 -s \"%1\" 
+         "@
+         $text | Out-File -FilePath C:\tools\sdelete.reg
+      ignore_errors: yes 
+      tags: tools 
+      
+    - name: Merge in a registry file without comparing to current registry
+      ansible.windows.win_command: REG IMPORT C:\tools\sdelete.reg
+      tags: tools 
+      
+    - name: Creating tools folder in C:\tools\Velociraptor
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\Velociraptor\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools 
+
+    - name: Downloading Velociraptor
+      win_get_url:
+        url: "{{ config_file.tools.standalone.velociraptor }}"
+        dest: C:\tools\Velociraptor\
+      ignore_errors: yes 
+      tags: tools
+         
+    - name: Creating tools folder in C:\tools\plaso
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\plaso\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools 
+
+    - name: Downloading plaso
+      win_get_url:
+        url: "{{ config_file.tools.git.plaso }}"
+        dest: C:\tools\plaso\plaso.zip
+      tags: tools      
+
+    - name: Unpacking Plaso
+      community.windows.win_unzip:
+        src: C:\tools\plaso\plaso.zip
+        dest: C:\tools\plaso\
+        delete_archive: yes
+      tags: tools
+      
+    - name: Creating tools folder in C:\tools\volatility3
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\volatility3\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading volatility3
+      win_get_url:
+        url: "{{ config_file.tools.git.volatility3 }}"
+        dest: C:\tools\volatility3\volatility3.zip
+      tags: tools  
+
+    - name: Unpacking volatility3
+      community.windows.win_unzip:
+        src: C:\tools\volatility3\volatility3.zip
+        dest: C:\tools\volatility3\
+        delete_archive: yes
+      tags: tools 
+
+    - name: Installing volatility3 requirements 
+      ansible.windows.win_command: cmd /c start /B pip install -r C:\tools\volatility3\volatility3-develop\requirements.txt
+      ignore_errors: yes 
+      tags: tools      
+  
+    - name: Installing jupyterlab
+      ansible.windows.win_command: cmd /c start /B pip install jupyterlab
+      poll: 0
+      async: 10000
+      ignore_errors: yes 
+      tags: tools      
+      
+    - name: Downloading Sift Workstation
+      win_get_url:
+        url: "{{ config_file.tools.installers.sift }}"
+        dest: C:\Linux\download\
+      tags: tools
+
+    - name: Deploying Sift Workstation - Step 0
+      ansible.windows.win_command: wsl -e bash -c "apt-get update -y && apt --fix-broken install -y && apt-get autoremove -y && dpkg --configure -a"
+      ignore_errors: yes       
+      tags: tools
+   
+    - name: Deploying Sift Workstation - Step 1
+      ansible.windows.win_command: wsl -e bash -c "adduser --disabled-password --shell /bin/bash --gecos installer installer"
+      ignore_errors: yes          
+      tags: tools
+
+    - name: Deploying Sift Workstation - Step 2
+      ansible.windows.win_command: wsl -e bash -c "usermod -aG sudo installer"
+      ignore_errors: yes          
+      tags: tools 
+      
+    - name: Deploying Sift Workstation - Step 3
+      ansible.windows.win_command: wsl -e bash -c "echo 'installer  ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/installer"
+      ignore_errors: yes          
+      tags: tools
+
+    - name: Deploying Sift Workstation - Step 4
+      ansible.builtin.win_command: wsl -e bash -c "su - installer -c 'sudo chmod 755 /mnt/c/Linux/download/sift-cli-linux; sudo chmod +x /mnt/c/Linux/download/sift-cli-linux' "
+      ignore_errors: yes
+      tags: tools   
+
+    - name: Deploying Sift Workstation - Step 5 
+      ansible.builtin.win_command: wsl -e bash -c "sleep 10; nohup su - installer -c 'nohup sudo /mnt/c/Linux/download/sift-cli-linux install --mode=packages-only 2>&1 & disown' "
+      ignore_errors: yes
+      poll: 0
+      async: 240
+      tags: tools 
+
+    - name: Deploying Sift Workstation - Step 0 repeat
+      ansible.windows.win_command: wsl -e bash -c "apt-get update -y && apt --fix-broken install -y && apt-get autoremove -y && dpkg --configure -a"
+      ignore_errors: yes     
+      tags: tools
+      
+    # Repeating as AWS sometimes, for some reason, times out on above.
+    - name: Deploying Sift Workstation - Step 5 
+      ansible.builtin.win_command: wsl -e bash -c "sleep 10; nohup su - installer -c 'nohup sudo /mnt/c/Linux/download/sift-cli-linux install --mode=packages-only 2>&1 & disown' "
+      ignore_errors: yes
+      poll: 0
+      async: 240
+      tags: tools 
+    
+  rescue:
+    - include_tasks: 
+        file: roles/tools/tasks/main.yml
+        apply:
+          tags:
+            - tools
+      when: include_tools_installer_counter|int < include_max|default(10)|int
+      tags: tools
+      
+    - fail:
+        msg: Failed to install tools after 10 attempts
+      when: include_tools_installer_counter|int >= include_max|default(10)|int
+      tags: tools
+  tags: tools

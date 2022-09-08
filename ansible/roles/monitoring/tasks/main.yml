@@ -1,0 +1,328 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+---
+############################################################
+# Logging configuration. Tag: monitoring
+############################################################
+# Configuration below will add additional logging capabilities to our hosts
+# In addition, auditpol is used to configure CIS standard for security auditing
+    
+- name: Attempt to configure additional monitoring. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_monitoring_counter: "{{ 0 if include_monitoring_counter is undefined else include_monitoring_counter|default(0)|int + 1 }}"
+      tags: monitoring
+      
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: monitoring
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: monitoring
+
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: monitoring
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: monitoring
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      tags: monitoring 
+
+
+    - name: Enable process tracking
+      win_regedit:
+        path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit
+        name: ProcessCreationIncludeCmdLine_Enabled
+        value: 1
+      tags: monitoring
+
+    - name: Config Defender exception for Loki2WindowsEventLog
+      ansible.windows.win_powershell:
+        script: |
+          Add-MpPreference -ExclusionPath "C:\Program Files\Loki2WindowsEventLog\*"
+      tags: monitoring
+      
+    - name: Config Defender exception for PeSieve2WindowsEventLog
+      ansible.windows.win_powershell:
+        script: |
+          Add-MpPreference -ExclusionPath "C:\Program Files\PeSieve2WindowsEventLog\*"
+      tags: monitoring
+                   
+    - name: Config Defender exception for Loki2WindowsEventLog Loki binary
+      ansible.windows.win_powershell:
+        script: |
+          Add-MpPreference -ExclusionProcess "C:\Program Files\Loki2WindowsEventLog\loki\loki.exe"
+          Add-MpPreference -ExclusionProcess "C:\Program Files\Loki2WindowsEventLog\loki\loki-upgrader.exe"
+      tags: monitoring
+      
+    # Set basic AUDIT policies
+    - name: Set audit policies
+      win_audit_policy_system:
+        category: "{{ item }}"
+        audit_type: success, failure
+      with_items:
+      - Account logon
+      - Account management
+      - DS Access
+      - Detailed Tracking
+      - Logon/Logoff
+      - Privilege use
+      - Policy change
+      - System
+      - Object access
+      tags: monitoring
+
+    # Enabling PowerShell script block logging will record detailed information from the processing of PowerShell commands and scripts
+    - name: Powershell ScriptBlock Logging | powershell-script-blocklogging
+      win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+        name: "EnableScriptBlockLogging"
+        data: "1"
+        type: dword
+      tags: monitoring
+
+    - name: Powershell ScriptBlock Logging | powershell-script-blocklogging
+      win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+        name: "EnableScriptBlockInvocationLogging"
+        data: "1"
+        type: dword
+      tags: monitoring
+
+    - name: Powershell ScriptBlock Logging | powershell-script-blocklogging
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+        name: "EnableModuleLogging"
+        data: "1"
+        type: dword
+      tags: monitoring
+          
+    # Transcription creates a unique record of every PowerShell session, including all input and output, exactly as it appears in the session.
+    - name: Powershell Transcription | powershell-transcription
+      win_regedit:
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription
+        name: "EnableTranscripting"
+        data: "1"
+        type: dword
+      tags: monitoring
+
+    # Sleep for 1 minutes
+    - name: Sleep
+      pause:
+        minutes: 1
+      tags: monitoring  
+     
+    ############################################################
+    # Auditing configuration based on CIS guide. Tag: monitoring
+    ############################################################ 
+      
+    # ===================================================================
+    # 17.1.1 (L1) Get the "credential validation" settings:
+    # ===================================================================
+    - name: "17.1.1 (L1) execute command for the credential validation log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Credential Validation" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.2.1 (L1) Get the "Application Group Management" log settings:
+    # ===================================================================
+    - name: "17.2.1 (L1) execute cmd for Application Group Management log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Application Group Management" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.2.5 (L1) Get the "Security Group Management" log settings:
+    # ===================================================================
+    - name: "17.2.5 (L1) execute cmd for the Security Group Management log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Security Group Management" /success:enable'
+      tags: monitoring
+
+    # ===================================================================
+    # 17.2.6 (L1) Get the "User Account Management" log settings:
+    # ===================================================================
+    - name: "17.2.6 (L1) execute cmd for the User Account Management log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"User Account Management" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.3.1 (L1) Get the "Plug and Play Events" log settings:
+    # ===================================================================
+    - name: "17.3.1 (L1) execute command for the Plug and Play Events log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Plug and Play Events" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.3.2 (L1) Get the "Process Creation" log settings:
+    # ===================================================================
+    - name: "17.3.2 (L1) execute command for the Process Creation log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Process Creation" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.5.1 (L1) Get the "Account Lockout" log settings:
+    # ===================================================================
+    - name: "17.5.1 (L1) execute command for the Account Lockout log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Account Lockout" /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.5.2 (L1) Get the "Group Membership" log settings:
+    # ===================================================================
+    - name: "17.5.2 (L1) execute command for the Group Membership log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Group Membership" /success:enable'
+      tags: monitoring
+
+    # ===================================================================
+    # 17.5.3 (L1) Get the "Logoff" log settings:
+    # ===================================================================
+    - name: "17.5.3 (L1) execute the Remediation cmd for the Logoff log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Logoff" /success:enable'
+      tags: monitoring
+    # ==================================================================
+    # 17.5.4 (L1) Get the "Logon" log settings:
+    # ===================================================================
+    - name: "17.5.4 (L1) execute command for the Logon log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Logon" /success:enable /failure:enable'
+      tags: monitoring
+      
+    # ===================================================================
+    # 17.5.5 (L1) Get the "Other Logon/Logoff Events" log settings:
+    # ===================================================================
+    - name: "17.5.5 (L1) execute cmd for Other Logon/Logoff Events log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Other Logon/Logoff Events" /success:enable /failure:enable'
+      tags: monitoring
+
+    # ===================================================================
+    # 17.5.6 (L1) Get the "Special Logon" log settings:
+    # ===================================================================
+    - name: "17.5.6 (L1) execute command for the Special Logon log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Special Logon" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.6.1 (L1) Get the "Detailed File Share" log settings:
+    # ===================================================================
+    - name: "17.6.1 (L1) execute command for the Detailed File Share log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Detailed File Share" /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.6.2 (L1) Get the "File Share" log settings:
+    # ===================================================================
+    - name: "17.6.2 (L1) execute command for the File Share log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"File Share" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.6.3 (L1) Get the "Other Object Access Events" log settings:
+    # ===================================================================
+    - name: "17.6.3 (L1)execute cmd for the Other Object Access Events log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Other Object Access Events" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.6.4 (L1) Get the "Removable Storage" log settings:
+    # ===================================================================
+    - name: "17.6.4 (L1) execute command for the Removable Storage log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Removable Storage" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.7.1 (L1) Get the "Audit Policy Change" log settings:
+    # ===================================================================
+    - name: "17.7.1 (L1) execute command for the Audit Policy Change log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Audit Policy Change" /success:enable'
+      tags: monitoring
+    # =====================================================================
+    # 17.7.2 (L1) Get the "Authentication Policy Change" log settings:
+    # =====================================================================
+    - name: "17.7.2 (L1) execute cmd for Authentication Policy Change log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Authentication Policy Change" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.7.3 (L1)  Get the "Authorization Policy Change" log settings:
+    # ===================================================================
+    - name: "17.7.3 (L1) execute cmd for Authorization Policy Change log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Authorization Policy Change" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.7.4 (L1) Get the "MPSSVC Rule-Level Policy Change" log settings:
+    # ===================================================================
+    - name: "17.7.4 (L1) execute cmd - MPSSVC Rule-Level Policy Change log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"MPSSVC Rule-Level Policy Change" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.7.5 (L1)  Get the "Other Policy Change Events" log settings:
+    # ===================================================================
+    - name: "17.7.5 (L1) execute cmd for Other Policy Change Events log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Other Policy Change Events" /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.8.1 (L1) Get the "Sensitive Privilege Use" log settings:
+    # ===================================================================
+    - name: "17.8.1 (L1) execute cmd for the Sensitive Privilege Use log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Sensitive Privilege Use" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.9.1 (L1) Get the "IPsec Driver" log settings:
+    # ===================================================================
+    - name: "17.9.1 (L1) execute command for the IPsec Driver log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"IPsec Driver" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.9.2 (L1) Get the "Other System Events" log settings:
+    # ===================================================================
+    - name: "17.9.2 (L2) execute command for the Other System Events log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Other System Events" /success:enable /failure:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.9.3 (L1) Get the "Security State Change" log settings:
+    # ===================================================================
+    - name: "17.9.3 (L1) execute command for the Security State Change log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Security State Change" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.9.4 (L1) Get the "Security System Extension" log settings:
+    # ===================================================================
+    - name: "17.9.4 (L1) command for the Security System Extension log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"Security System Extension" /success:enable'
+      tags: monitoring
+    # ===================================================================
+    # 17.9.5 (L1) Get the "System Integrity" log settings:
+    # ===================================================================
+    - name: "17.9.5 (L1) execute command for the System Integrity log settings"
+      win_shell: 'auditpol.exe /set /subcategory:"System Integrity" /success:enable /failure:enable'
+      tags: monitoring
+
+  rescue:
+    - include_tasks: 
+        file: roles/monitoring/tasks/main.yml
+        apply:
+          tags:
+            - monitoring
+      when: include_monitoring_counter|int < include_max|default(10)|int
+      tags: monitoring
+      
+    - fail:
+        msg: Failed to install various monitoring aspects after 10 attempts
+      when: include_monitoring_counter|int >= include_max|default(10)|int
+      tags: monitoring
+  tags: monitoring

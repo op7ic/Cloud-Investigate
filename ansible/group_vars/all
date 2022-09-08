@@ -1,0 +1,15 @@
+ansible_connection: psrp
+ansible_psrp_auth: ntlm
+ansible_psrp_cert_validation: ignore
+# Control timeouts
+ansible_psrp_operation_timeout: 900
+ansible_psrp_connection_timeout: 900
+ansible_psrp_read_timeout: 900
+# Control reconnection and backoff
+ansible_psrp_connection_backoff: 2
+ansible_psrp_reconnection_backoff: 2
+ansible_psrp_reconnection_retries: 10
+# Control ports
+ansible_port: 5985
+ansible_psrp_port: 5985
+ignore_unreachable: yes

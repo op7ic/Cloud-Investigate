@@ -1,0 +1,224 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+
+
+############################################################
+# Install WSL. Tag: wsl2                                   # 
+############################################################
+--- 
+- name: Attempt to deploy wsl2. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_wsl2_installer_counter: "{{ 0 if include_wsl2_installer_counter is undefined else include_wsl2_installer_counter|default(0)|int + 1 }}"
+      tags: wsl2
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: wsl2
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        install_url: "{{ config_file.tools.standalone.wsl }}"
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: wsl2
+
+    - name: Gather remote facts
+      setup: {}
+      tags: wsl2 
+      
+    # AWS somehow is a lot slower than azure so we might need to wait longer for this to work
+    # This check will pool until we get successful connection before moving on to other work
+    - name: Check if we can connect with the default username and password
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 10
+        timeout: 500
+        delay: 5
+        sleep: 5
+      register: connection
+      ignore_errors: yes
+      vars:
+        ansible_user: "{{ ansible_user }}"
+        ansible_pass: "{{ ansible_password }}"
+      tags: wsl2
+      
+    - name: Print results
+      debug:
+        msg: "Connection {% if connection.failed %}failed{% else %}succeeded{% endif %}"
+      tags: wsl2
+      
+    # Meta is used to ensure that if connection fails that reconnect works.
+    # Since baseline is first task to run this show, any fail here should be clared for restart
+    - meta: clear_host_errors
+      tags: wsl2 
+      
+    # In case tasks failed we will remove and re-create Ubuntu install
+    - name: Creating folder for download
+      ansible.windows.win_powershell: 
+        script: |
+            wsl --unregister Ubuntu
+            Get-ChildItem C:\Linux\ -Recurse | Remove-Item -Force -Recurse
+            Md C:\Linux\download\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: wsl2
+
+    - name: Test for WSL package
+      win_stat:
+        path: C:\Linux\download\package.appx
+      register: wsl2_executable
+      tags: wsl2
+      
+    - name: Downloading WSL2 package
+      win_get_url:
+        url: "{{ install_url }}"
+        dest: C:\Linux\download\package.appx
+      when: not wsl2_executable.stat.exists
+      tags: wsl2
+
+    # For some reason this does not get captured as exit code despite success output 
+    - name: Enable WSL2
+      ansible.windows.win_command: cmd /c dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+      ignore_errors: yes
+      tags: wsl2
+      
+    - name: Enable Containers
+      ansible.windows.win_command: cmd /c dism.exe /online /enable-feature /All /FeatureName:Containers /norestart   
+      ignore_errors: yes
+      tags: wsl2
+   
+    # WSL2 does not appear to work on Server 2022..
+    - name: Test for WSL2 package
+      win_stat:
+        path: C:\Linux\download\wsl_update_x64.msi
+      register: wsl2_patch
+      tags: wsl2
+      
+    - name: Downloading WSL2 kernel patch
+      win_get_url:
+        url: https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi 
+        dest: C:\Linux\download\wsl_update_x64.msi 
+      when: not wsl2_patch.stat.exists
+      tags: wsl2
+
+    - name: Downloading WSL2 kernel patch - backup method
+      ansible.windows.win_package:
+        path: "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi"
+        state: present
+      register: wsl2_patch
+      ignore_errors: yes 
+      tags: wsl2
+
+    - name: Set WSL version to 1
+      ansible.windows.win_command: cmd /c wsl --set-default-version 1
+      ignore_errors: yes      
+      tags: wsl2
+    
+    - name: Install VM platform
+      ansible.windows.win_command: cmd /c dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+      ignore_errors: yes
+      tags: wsl2
+
+    - name: Install VM platform
+      ansible.windows.win_command: cmd /c dism /Online /Enable-Feature /FeatureName:Microsoft-Hyper-V /All /norestart
+      ignore_errors: yes
+      tags: wsl2      
+      
+    - name: Install VM platform
+      ansible.windows.win_command: cmd /c bcdedit /set hypervisorlaunchtype auto start 
+      ignore_errors: yes
+      tags: wsl2            
+      
+    - name: Install WSL2 kernel patch
+      ansible.windows.win_command: 'cmd /c msiexec.exe /i C:\\Linux\\download\\wsl_update_x64.msi /qn'
+      ignore_errors: yes
+      tags: wsl2
+
+    - name: Set WSL version to 1
+      ansible.windows.win_command: cmd /c wsl --set-default-version 1
+      ignore_errors: yes
+      tags: wsl2
+      
+    - name: Reboot machine
+      win_reboot:
+        reboot_timeout: 3600
+        post_reboot_delay: 180
+      tags: wsl2     
+      
+    # Sleep for 1 minute. This is to give time for workstation to set itself properly.
+    # In my experiments, WinRM was timing out a lot with 'connection refused' error here otherwise.
+    - name: Sleep
+      pause:
+        minutes: 2
+      tags: wsl2   
+
+    - name: Set WSL version to 1
+      ansible.windows.win_command: cmd /c wsl --set-default-version 1
+      ignore_errors: yes      
+      tags: wsl2
+      
+    - name: Install APPX package
+      ansible.windows.win_command: powershell -nop -exec bypass -c "Add-AppxPackage C:\Linux\download\package.appx"
+      ignore_errors: yes 
+      tags: wsl2
+
+    - name: Rename APPX package to zip
+      ansible.windows.win_powershell:
+        script: |
+          Rename-Item C:\Linux\download\package.appx C:\Linux\download\package-install.zip
+          Md C:\Linux\download\package-install\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: wsl2
+      
+    - name: Unpack package archive    
+      community.windows.win_unzip:
+        src: C:\Linux\download\package-install.zip
+        dest: C:\Linux\download\package-install\
+      tags: wsl2
+
+    - name: Adjust APPX package
+      ansible.windows.win_powershell:
+        script: |
+          get-childitem -Path "C:\Linux\download\package-install\" | where-object { $_.Name -like "*_x64.appx" } | %{  Rename-Item -LiteralPath $_.FullName -NewName "$($_.name).zip" } 
+          md "C:\Linux\download\package-install\archive"
+          get-childitem -Path "C:\Linux\download\package-install\" | where-object { $_.Name -like "*_x64.appx.zip" } | %{ expand-archive $_.FullName "C:\Linux\download\package-install\archive" }
+      ignore_errors: yes 
+      tags: wsl2
+     
+    - name: Set WSL version to 1
+      ansible.windows.win_command: cmd /c wsl --set-default-version 1
+      ignore_errors: yes      
+      tags: wsl2
+      
+    - name: Install WSL package
+      ansible.windows.win_command: cmd /c C:\Linux\download\package-install\archive\ubuntu.exe install --root
+      ignore_errors: yes 
+      tags: wsl2
+
+    - name: Set WSL version to 1
+      ansible.windows.win_command: cmd /c wsl --set-default-version 1
+      ignore_errors: yes
+      tags: wsl2      
+       
+  rescue:
+    - include_tasks: 
+        file: roles/wsl2/tasks/main.yml
+        apply:
+          tags:
+            - wsl2
+      when: include_wsl2_installer_counter|int < include_max|default(10)|int
+      tags: wsl2
+      
+    - fail:
+        msg: Failed to install wsl2 after 10 attempts
+      when: include_wsl2_installer_counter|int >= include_max|default(10)|int
+      tags: wsl2
+  tags: wsl2

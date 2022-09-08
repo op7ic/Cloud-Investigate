@@ -1,0 +1,14 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+
+- name: restart-sysmon
+  win_shell: Restart-Service sysmon
+
+- name: restart-sysmon64
+  win_shell: Restart-Service sysmon64

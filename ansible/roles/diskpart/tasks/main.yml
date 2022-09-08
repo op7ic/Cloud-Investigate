@@ -1,0 +1,59 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+
+
+############################################################
+# Fix disk size for azure. Tag: diskpart                   # 
+############################################################
+--- 
+- name: Attempt to fix disk size. Fail and repeat if needed.
+  block:
+    - name: set fact
+      set_fact:
+        include_diskpart_installer_counter: "{{ 0 if include_diskpart_installer_counter is undefined else include_diskpart_installer_counter|default(0)|int + 1 }}"
+      tags: diskpart
+  
+    - name: Domain configuration file
+      include_vars:
+        file: ../../../../config/os-setup.yml
+        name: config_file
+      tags: diskpart
+      
+    - name: Read Config File and get credentials
+      set_fact:
+        ansible_user: "{{ config_file.local_admin_credentials.username }}"
+        ansible_password: "{{ config_file.local_admin_credentials.password }}"
+      tags: diskpart
+
+    - name: Gather remote facts
+      setup: {}
+      tags: diskpart 
+      
+    - name: Resize previously created partition to it's maximum size
+      community.windows.win_partition:
+        state: present
+        partition_size: -1
+        partition_number: 2
+        disk_number: 0    
+      tags: diskpart   
+
+  rescue:
+    - include_tasks: 
+        file: roles/diskpart/tasks/main.yml
+        apply:
+          tags:
+            - diskpart
+      when: include_diskpart_installer_counter|int < include_max|default(10)|int
+      tags: diskpart
+      
+    - fail:
+        msg: Failed to install diskpart after 10 attempts
+      when: include_diskpart_installer_counter|int >= include_max|default(10)|int
+      tags: diskpart
+  tags: diskpart

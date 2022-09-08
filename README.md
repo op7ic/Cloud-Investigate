@@ -69,7 +69,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [PassMark VolatilityWorkbench](https://www.osforensics.com/tools/volatility-workbench.html) | C:\tools\passmark | Installer | 
 | [Secure remove contex menu using sDelete64](https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html) | C:\tools\sdelete.reg | Installed and added as a menu option | 
 | [BitVise SSH Server](https://community.chocolatey.org/packages/bitvise-ssh-server) | C:\Program Files\Bitvise SSH Server | Installed tool |
-| [NetworkMiner](https://www.netresec.com/?page=NetworkMiner) | C:\tools\NetworkMiner | Zipped tool suite | 
+| [NetworkMiner](https://www.netresec.com/?page=NetworkMiner) | C:\tools\NetworkMiner | Installer | 
 | [DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite) | C:\tools\DidierStevensSuite | Zipped tool suite | 
 
 The following KAPE plugins/addones were also added:

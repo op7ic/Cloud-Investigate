@@ -1,7 +1,7 @@
 # Cloud-Investigate
 
 <p align="center">
-  <img src="https://github.com/op7ic/Cloud-Investigate/blob/main/logo/logo.PNG?raw=true" alt="Cloud-Investigate"/>
+  <img src="https://github.com/op7ic/Cloud-Investigate/blob/main/logo/logo.png?raw=true" alt="Cloud-Investigate"/>
 </p>
 
 # Purpose

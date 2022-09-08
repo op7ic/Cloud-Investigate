@@ -226,7 +226,7 @@ terraform apply -auto-approve -var="region=us-east-1a" -var="windows_server_subn
 ---
 # Firewall Configuration
 
-The following table summarises a set of firewall rules applied across the Cloud Investigate enviroment in default configuration. Please modify the [azure main.tf](azure/main.tf) or [azure main.tf](aws/main.tf) file to add new firewall rules, as needed, in the **Firewall Rule Setup** section. 
+The following table summarises a set of firewall rules applied across the Cloud Investigate enviroment in default configuration. Please modify the [azure main.tf](azure/main.tf) or [aws main.tf](aws/main.tf) file to add new firewall rules, as needed, in the **Firewall Rule Setup** section. 
 
 | Rule Name | Network Security Group | Source Host | Source Port  | Destination Host | Destination Port |
 | ------------- | ------------- |  ------------- |  ------------- |  ------------- |  ------------- |

@@ -30,7 +30,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Fireeye Highlighter](https://fireeye.market/apps/211376) | C:\Tools\MandiantTools\ | Installer  |
 | [Velociraptor](https://docs.velociraptor.app/docs/) | C:\Tools\Velociraptor\ | Unzipped tool suite |
 | [Kape](https://www.kroll.com/en/insights/publications/cyber/kroll-artifact-parser-extractor-kape) | C:\tools\KAPE\ | Unzipped tool suite |
-| [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) | N/A | WSL Version 1 installed |
+| [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) | C:\Linux | Installed tool |
 | [Autopsy](https://www.autopsy.com/download/) | C:\Program Files\ | Installed tool |
 | [Chocolatey](https://docs.chocolatey.org/en-us/) | C:\ProgramData\Chocolatey | Installed tool |
 | [NirLauncher Package](https://community.chocolatey.org/packages/nirlauncher) | C:\tools\NirLauncher | Installed tool |

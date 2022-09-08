@@ -1,0 +1,129 @@
+###############################################################
+# Author      : Jerzy 'Yuri' Kramarz (op7ic)                  #
+# Version     : 1.0                                           #
+# Type        : Terraform/Ansible                             #
+# Description : Cloud-Investigate. See README.md for details  # 
+# License     : See LICENSE for details                       #   
+###############################################################
+
+############################################################
+# Instructions: Use options below to configure your deployment enviroment
+############################################################
+
+# Firewall setup
+enable_windows_firewall: false
+
+# Credentials of the local admin/root created on workstation and servers.
+# On AWS we rename default 'Administrator' account to specificed username so ansible can log in.
+local_admin_credentials:
+  username: prime
+  password: oD2kQ09#%qZ5%ZxZ77N&6BMFghvm$j
+
+# Safe Mode Password
+safe_mode_pass: oD2kQ09#%qZ5%ZxZ77N&6BMFghvm$j
+
+# hostname
+server_name: PRIME
+
+# Packages installed by chocoladey package management
+chocoladey_packages:
+  - python3
+  - megatools
+  - nirlauncher
+  - vcredist-all
+  - visualstudio2019buildtools
+  - visualstudio2022buildtools
+  - microsoft-build-tools
+  - visualcpp-build-tools
+  - windows-sdk-10-version-2004-windbg
+  - virtualmachineconverter
+  - dotnetfx
+  - wireshark
+  - ext2fsd
+  - 7zip.install
+  - notepadplusplus
+  - winscp
+  - folderchangesview
+  - hashcheck
+  - Firefox
+  - volatility
+  - sandboxie-plus
+  - radare2
+  - qemu
+  - qemu-img
+  - curl
+  - GoogleChrome
+  - tor-browser
+  - smartftp
+  - Cygwin
+  - kubernetes-cli
+  - putty.install
+  - yara
+  - jre8
+  - clamav
+  - bitvise-ssh-server
+  
+# Sysmon configuration options. This options allows you to set up where to get Sysmon binary and configuration files from. 
+sysmon:
+  installer_url: https://live.sysinternals.com/Sysmon64.exe
+  config_url: https://raw.githubusercontent.com/SwiftOnSecurity/sysmon-config/master/sysmonconfig-export.xml
+
+# Location of download links for various tools and plugins
+tools:
+  standalone: 
+    velociraptor: https://github.com/Velocidex/velociraptor/releases/download/v0.6.5-0/velociraptor-v0.6.5-2-windows-amd64.exe
+    kape: https://s3.amazonaws.com/cyb-us-prd-kape/kape.zip
+    wsl: https://aka.ms/wslubuntu2004
+    ericzimmermantoolsv4: https://f001.backblazeb2.com/file/EricZimmermanTools/All.zip
+    ericzimmermantoolsv6: https://f001.backblazeb2.com/file/EricZimmermanTools/net6/All_6.zip
+    Aresnal_Image_Mouter: https://mega.nz/file/vsJVGI5D#cyBkjLKIxskTS3q5J0pW19swgykBwK6_ofzjJOmg2MA
+    Arsenal_Registry_Recon: https://mega.nz/file/PwJGXTQZ#Py3NGbvkkJzeEAoCJ9aghdyVuP1Augfa5Hz-jRATNEs
+    Arsenal_Hive_Recon: https://mega.nz/file/GxpD2CIa#ADTUWZrX328ijGXNTfe6sxKLkNMkXsu6w3s7b2EdZ8s
+    Arsenal_Hibernation_Recon: https://mega.nz/file/Kl4AzBTI#gEWZCXQPzVjyuCwfMVvePVsAwl3_IZ0LRpeY0AkGL-c
+    Arsenal_HIBN_Recon: https://mega.nz/file/i04RjYJI#yqyrgECgUjKxwGSCsvx-fhvwkICGTr2z7OihTJoeWys
+    Arsenal_ODC_Recon: https://mega.nz/file/604lWb4Z#Tn3ePIlMaGOSmTfuCMKaEeLRyTU0S4uCekZQJzKttCQ
+    Fireeye_Redline: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-redline.zip
+    Fireeye_Memoryze: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-memoryze.zip
+    Fireeye_Highlighter: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-highlighter.zip
+    Sysinternals: https://download.sysinternals.com/files/SysinternalsSuite.zip
+    brim: https://github.com/brimdata/brim/releases/download/v0.31.0/Brim-Setup-0.31.0.exe
+    burp: https://portswigger-cdn.net/burp/releases/download?product=community&version=2022.7.1&type=WindowsX64
+    OSForensic: https://osforensics.com/downloads/osf.exe
+    OSFMount: https://www.osforensics.com/downloads/osfmount.exe
+    VolatilityWorkbench: https://www.osforensics.com/downloads/VolatilityWorkbench.zip
+    NetworkMiner: https://www.netresec.com/?download=NetworkMiner
+    DidierStevensSuite: https://github.com/DidierStevens/DidierStevensSuite/archive/refs/heads/master.zip
+  git:
+    volatility3: https://github.com/volatilityfoundation/volatility3/archive/refs/heads/develop.zip
+    plaso: https://github.com/log2timeline/plaso/archive/refs/heads/main.zip
+  installers:
+    autopsy: https://github.com/sleuthkit/autopsy/releases/download/autopsy-4.19.3/autopsy-4.19.3-64bit.msi
+    sift: https://github.com/teamdfir/sift-cli/releases/download/v1.14.0-rc1/sift-cli-linux
+  kape_plugins:
+    KAPE_EZUpader: https://raw.githubusercontent.com/AndrewRathbun/KAPE-EZToolsAncillaryUpdater/main/KAPE-EZToolsAncillaryUpdater.ps1
+    reg_hunter: https://github.com/theflakes/reg_hunter/releases/download/0.6.0/reg_hunter-64.exe
+    SEPparser: https://github.com/Beercow/SEPparser/raw/master/bin/SEPparser.exe
+    srum_dump: https://github.com/MarkBaggett/srum-dump/raw/python3/srum_dump_csv.exe
+    OneDriveExplorer: https://github.com/Beercow/OneDriveExplorer/releases/download/v2022.06.17/OneDriveExplorer.exe
+    hindsight: https://github.com/obsidianforensics/hindsight/releases/download/v2021.12/hindsight.exe
+    dhparser: https://github.com/jklepsercyber/defender-detectionhistory-parser/blob/main/dhparser.exe
+    CCMRUAFinder_RecentlyUsedApps: https://github.com/esecrpm/WMI_Forensics/raw/master/CCM_RUA_Finder.exe
+    BMCCacheParse: https://github.com/dingtoffee/bmc-tools/blob/master/dist/bmc-tools.exe 
+    sigcheck: https://live.sysinternals.com/sigcheck64.exe
+    INDXRipper: https://github.com/harelsegev/INDXRipper/releases/download/v5.2.6/INDXRipper-5.2.6-py3.9-amd64.zip
+    Chainsaw: https://github.com/WithSecureLabs/chainsaw/releases/download/v2.0.0/chainsaw_all_platforms+rules+examples.zip
+    hayabusa: https://github.com/Yamato-Security/hayabusa/releases/download/v1.5.0/hayabusa-1.5.0-all-windows.zip
+    LevelDBDumper: https://github.com/mdawsonuk/LevelDBDumper/releases/download/v2.0.2/LevelDBDumper.exe
+    McAfeeStinger: https://downloadcenter.mcafee.com/products/mcafee-avert/stinger/stinger32.exe
+    Kaspersky_TDSSKiller: http://media.kaspersky.com/utilities/VirusUtilities/EN/tdsskiller.exe
+    EvtxHussar: https://github.com/yarox24/EvtxHussar/releases/download/1.5/EvtxHussar1.5_windows_amd64.zip 
+    browsinghistoryview: https://www.nirsoft.net/utils/browsinghistoryview-x64.zip
+    FullEventLogView: https://www.nirsoft.net/utils/fulleventlogview-x64.zip
+    TurnedOnTimesView: https://www.nirsoft.net/utils/turnedontimesview.zip
+    usbdeview: https://www.nirsoft.net/utils/usbdeview-x64.zip
+    RegRipper: https://github.com/keydet89/RegRipper3.0/archive/refs/heads/master.zip
+    CAFAE: https://tzworks.com/prototypes/cafae/cafae64.v.0.76.win.zip
+    evtwalk64: https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.60.win.zip
+    
+    
+    

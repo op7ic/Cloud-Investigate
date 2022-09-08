@@ -234,6 +234,7 @@ The following table summarises a set of firewall rules applied across the Cloud 
 | Allow-WinRM  | windows-nsg  | [Your Public IP](https://ipinfo.io/json) | * | PWindows Servers, Windows Desktops | 5985 |  
 | Allow-WinRM-secure | windows-nsg  | [Your Public IP](https://ipinfo.io/json) | * | Windows Servers, Windows Desktops | 5986 |  
 | Allow-SMB  | windows-nsg  | [Your Public IP](https://ipinfo.io/json) | * | Windows Servers, Windows Desktops | 445 |
+| Allow-SFTP  | windows-nsg  | [Your Public IP](https://ipinfo.io/json) | * | Windows Servers, Windows Desktops | 22 |
 
 Internally the following static IP ranges are used for this enviroment in the default configuration:
 

@@ -1,12 +1,12 @@
+# Cloud-Investigate
+
+<p align="center">
+  <img src="https://github.com/op7ic/Cloud-Investigate/blob/main/logo/logo.PNG?raw=true" alt="Cloud-Investigate"/>
+</p>
+
 # Purpose
 
 This project contains a set of **Terraform** and **Ansible** scripts for **AWS** and **Azure** to create a disposable, cloud-based forensic system. The goal of this project is to provide blue teams with the ability to deploy a quick pre-configured Windows-based server to perform basic forensic investigation on various artifacts with minimal overhead. The system and data can be easily deleted after investigation is concluded.
-
----
-# Use cases
-
-* Rapid forensic investigation of a VMDK or triage images which can be downloaded directly onto the VM
-* Basic analysis of malware and memory samples on a throwaway system
 
 ---
 # Tools included
@@ -62,12 +62,15 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Brim](https://github.com/brimdata/brim) | C:\Users\\<user>\AppData\Local\Programs\brim\ | Installed tool |  
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
-| [SANS Sift packages (200+) ](https://www.sans.org/tools/sift-workstation/) | C:\Linux\download\ | Installed tool inside WSL |
-| [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\Chocolatey | Installed tool |
+| [SANS Sift packages (200+)](https://www.sans.org/tools/sift-workstation/) | C:\Linux\download\ | Tool installed inside WSL via nohup job |
+| [TOR Browser](https://community.chocolatey.org/packages/tor-browser) | C:\ProgramData\chocolatey\lib\tor-browser\tools\tor-browser\Browser | Installed tool |
 | [PassMark OSForensics](https://www.osforensics.com/download.html) | C:\Program Files\OSForensics | Installed tool | 
 | [PassMark OSFMount](https://www.osforensics.com/tools/mount-disk-images.html) | C:\Program Files\OSFMount | Installed tool | 
 | [PassMark VolatilityWorkbench](https://www.osforensics.com/tools/volatility-workbench.html) | C:\tools\passmark | Installer | 
 | [Secure remove contex menu using sDelete64](https://www.tenforums.com/tutorials/124286-add-secure-delete-context-menu-windows-10-a.html) | C:\tools\sdelete.reg | Installed and added as a menu option | 
+| [BitVise SSH Server](https://community.chocolatey.org/packages/bitvise-ssh-server) | C:\Program Files\Bitvise SSH Server | Installed tool |
+| [NetworkMiner](https://www.netresec.com/?page=NetworkMiner) | C:\tools\NetworkMiner | Zipped tool suite | 
+| [DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite) | C:\tools\DidierStevensSuite | Zipped tool suite | 
 
 The following KAPE plugins/addones were also added:
 
@@ -239,7 +242,26 @@ Internally the following static IP ranges are used for this enviroment in the de
 | Windows System | 10.0.10.0/24 | |
 
 
+# FAQ
+
+- How to add new KAPE module?
+  - Edit both [kape Ansible role](ansible/roles/kape/tasks/main.yml) and [os-setup.yml](config/os-setup.yml) to handle actions such as downloading, unpacking and adjusting location of binary as per mkape module.
+
+- How do I add new tools? 
+  - Edit both [tools Ansible role](ansible/roles/tools/tasks/main.yml) and [os-setup.yml](config/os-setup.yml) to handle actions such as downloading, unpacking and adjusting location of the tool you would like to add to the list. Alternatively drop me a pull request to add it to master repository. 
+ 
+- How do I securely wipe the data?
+  - This system comes with a sdelete installed as 'Secure Delete' option in right-click menu that you can execute on a folder or specific file. It will use sdelete binary to remove and overwrite content of the file/folder three times. Alternatively there is a copy of sdelete binaries in C:\tools\SysinternalsSuite
+
+- I get ```Disk *-disk already exists in resource group Cloud-Investigate. Only CreateOption.Attach is supported.``` or something similar to this error.
+  - Re-run terraform commands ```terraform destroy -auto-approve && terraform apply -auto-approve``` to destroy and re-create the lab. This error seems to show up when Azure doesn't clean up all the disks properly so there are leftover resources with the same name.
+
+- How do I modify network segments, deployment size or other variables?
+  - Modify the Terraform [Azure variables.tf](azure/variables.tf) or [AWS variables.tf](aws/variables.tf) file to change your setup. Alternatively, each variable can be changed during runtime by appending ```-var``` to ```terraform apply```. For example, ```terraform apply --auto-approve -var="region=East US 2"``` would modify a region to be different then the default set in the [Azure variables.tf](azure/variables.tf) or [AWS variables.tf](aws/variables.tf) file. The entire setup, including network ranges, operating systems and the VM size can be changed, using a chain of the ```-var``` parameters.
+
+- I get ``` Max retries exceeded with url: /wsman``` and then connection gets refused when building a system. 
+  - Unfortunately WinRM limitations mean that, on occasion, WinRM will simply stop working as expected and instead connections will freeze up. As a result, execution won't behave properly. Rerun ```terraform apply -auto-approve``` to repair the damaged host and redeploy incomplete Ansible steps.
+
 # Contributing
 
 Contributions, fixes, and improvements can be submitted directly for this project as a GitHub issue or a pull request.
-

@@ -49,6 +49,7 @@ chocoladey_packages:
   - volatility
   - sandboxie-plus
   - radare2
+  - powertoys
   - qemu
   - qemu-img
   - curl

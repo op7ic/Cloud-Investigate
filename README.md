@@ -76,7 +76,7 @@ The following KAPE plugins/addones were also added:
 
 | Tool | Tool Location | Notes | 
 | ------------- | ------------- | ------------- |
-| [KAPE-EZToolsAncillaryUpdater](https://raw.githubusercontent.com/AndrewRathbun/KAPE-EZToolsAncillaryUpdater/main/KAPE-EZToolsAncillaryUpdater.ps1) | C:\tools\KAPE\ | KAPE updater |
+| [KAPE-EZToolsAncillaryUpdater](https://raw.githubusercontent.com/AndrewRathbun/KAPE-EZToolsAncillaryUpdater/main/KAPE-EZToolsAncillaryUpdater.ps1) | C:\tools\KAPE\ | KAPE updater executed during deployment |
 | [reg_hunter](https://github.com/theflakes/reg_hunter/releases/download/0.6.0/reg_hunter-64.exe) | C:\tools\KAPE\Modules\bin\ | reg_hunter plugin |
 | [SEPparser](https://github.com/Beercow/SEPparser/raw/master/bin/SEPparser.exe) | C:\tools\KAPE\Modules\bin\ | SEPparser plugin |
 | [srum_dump](https://github.com/MarkBaggett/srum-dump/raw/python3/srum_dump_csv.exe) | C:\tools\KAPE\Modules\bin\ | srum_dump plugin |

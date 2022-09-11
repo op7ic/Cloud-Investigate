@@ -116,7 +116,7 @@
             Md C:\tools\DidierStevensSuite\ -ErrorAction SilentlyContinue
       ignore_errors: yes 
       tags: tools
-
+     
     - name: Downloading DidierStevensSuite package
       win_get_url:
         url: "{{ config_file.tools.standalone.DidierStevensSuite }}"
@@ -125,6 +125,22 @@
       async: 6000
       ignore_errors: yes 
       tags: tools  
+
+    - name: Creating tools folder in C:\tools\SplunkInstaller
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\SplunkInstaller\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading SplunkInstaller package
+      win_get_url:
+        url: "{{ config_file.tools.installers.splunk }}"
+        dest: C:\tools\SplunkInstaller\splunk-installer.msi
+      poll: 0
+      async: 6000
+      ignore_errors: yes 
+      tags: tools
 
     - name: Creating tools folder in C:\tools\NetworkMiner
       ansible.windows.win_powershell: 

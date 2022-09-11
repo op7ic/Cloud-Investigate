@@ -71,6 +71,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [BitVise SSH Server](https://community.chocolatey.org/packages/bitvise-ssh-server) | C:\Program Files\Bitvise SSH Server | Installed tool |
 | [NetworkMiner](https://www.netresec.com/?page=NetworkMiner) | C:\tools\NetworkMiner | Installer | 
 | [DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite) | C:\tools\DidierStevensSuite | Zipped tool suite | 
+| [Splunk](https://www.splunk.com/en_us/products/splunk-enterprise.html) | C:\tools\SplunkInstaller | Installer | 
 
 The following KAPE plugins/addones were also added:
 

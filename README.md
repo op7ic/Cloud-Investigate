@@ -11,7 +11,7 @@ This project contains a set of **Terraform** and **Ansible** scripts for **AWS**
 ---
 # Tools included
 
-A global YAML config file, [os-setup.yml](config/os-setup.yml), sets the versions of the tools and specific URLs which should be downloaded.
+A global YAML config file, [os-setup.yml](config/os-setup.yml), sets the versions of the tools and specific URLs which should be downloaded along with system names, credentials and other details.
 
 The following tools are currently deployed in the default configuration of Cloud Investigate:
 
@@ -73,7 +73,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite) | C:\tools\DidierStevensSuite | Zipped tool suite | 
 | [Splunk](https://www.splunk.com/en_us/products/splunk-enterprise.html) | C:\tools\SplunkInstaller | Installer | 
 
-The following KAPE plugins/addones were also added:
+The following KAPE plugins/addones were also added for KAPE installation in ```C:\tools\KAPE```:
 
 | Tool | Tool Location | Notes | 
 | ------------- | ------------- | ------------- |

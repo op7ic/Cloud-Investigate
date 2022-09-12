@@ -96,6 +96,7 @@ tools:
     DidierStevensSuite: https://github.com/DidierStevens/DidierStevensSuite/archive/refs/heads/master.zip
   git:
     volatility3: https://github.com/volatilityfoundation/volatility3/archive/refs/heads/develop.zip
+    volatility2: https://github.com/volatilityfoundation/volatility/archive/refs/heads/master.zip
     plaso: https://github.com/log2timeline/plaso/archive/refs/heads/main.zip
   installers:
     autopsy: https://github.com/sleuthkit/autopsy/releases/download/autopsy-4.19.3/autopsy-4.19.3-64bit.msi

@@ -522,6 +522,26 @@
         dest: C:\tools\volatility3\
         delete_archive: yes
       tags: tools 
+      
+    - name: Creating tools folder in C:\tools\volatility2
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\volatility2\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading volatility2
+      win_get_url:
+        url: "{{ config_file.tools.git.volatility2 }}"
+        dest: C:\tools\volatility2\volatility2.zip
+      tags: tools
+
+    - name: Unpacking volatility2
+      community.windows.win_unzip:
+        src: C:\tools\volatility2\volatility2.zip
+        dest: C:\tools\volatility2\
+        delete_archive: yes
+      tags: tools       
 
     - name: Installing volatility3 requirements 
       ansible.windows.win_command: cmd /c start /B pip install -r C:\tools\volatility3\volatility3-develop\requirements.txt

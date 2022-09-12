@@ -72,6 +72,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [NetworkMiner](https://www.netresec.com/?page=NetworkMiner) | C:\tools\NetworkMiner | Installer | 
 | [DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite) | C:\tools\DidierStevensSuite | Zipped tool suite | 
 | [Splunk](https://www.splunk.com/en_us/products/splunk-enterprise.html) | C:\tools\SplunkInstaller | Installer | 
+| [Docker](https://www.docker.com/) | N/A | Installed inside of WSL |
 
 The following KAPE plugins/addones were also added for KAPE installation in ```C:\tools\KAPE```:
 

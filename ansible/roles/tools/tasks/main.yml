@@ -121,10 +121,18 @@
       win_get_url:
         url: "{{ config_file.tools.standalone.DidierStevensSuite }}"
         dest: C:\tools\DidierStevensSuite\DidierStevensSuite.zip
-      poll: 0
-      async: 6000
       ignore_errors: yes 
       tags: tools  
+
+    - name: Unpacking DidierStevensSuite package
+      community.windows.win_unzip:
+        src: C:\tools\DidierStevensSuite\DidierStevensSuite.zip
+        dest: C:\tools\DidierStevensSuite\
+        delete_archive: yes
+        recurse: yes
+      poll: 0
+      async: 10000
+      tags: tools 
 
     - name: Creating tools folder in C:\tools\SplunkInstaller
       ansible.windows.win_powershell: 
@@ -436,7 +444,7 @@
            "Icon"="imageres.dll,-5320"
           
          [HKEY_CLASSES_ROOT\*\shell\SecureDelete\command]
-           @="sdelete64.exe -accepteula -p 2 \"%1\""
+           @="sdelete64 -accepteula -p 2 \"%1\""
             
          [HKEY_CLASSES_ROOT\Directory\shell\SecureDelete]
            @="Secure Delete"
@@ -446,15 +454,20 @@
            "Icon"="imageres.dll,-5320"
           
          [HKEY_CLASSES_ROOT\Directory\shell\SecureDelete\command]
-           @="sdelete64.exe -accepteula -p 2 -s \"%1\" 
+           @="sdelete64 -accepteula -p 2 -s \"%1\" 
          "@
          $text | Out-File -FilePath C:\tools\sdelete.reg
       ignore_errors: yes 
       tags: tools 
-      
+
     - name: Merge in a registry file without comparing to current registry
       ansible.windows.win_command: REG IMPORT C:\tools\sdelete.reg
       tags: tools 
+
+    - name: Ensure that we refresh enviroment before calling specific tools
+      ansible.windows.win_shell: refreshenv
+      ignore_errors: yes
+      tags: tools
       
     - name: Creating tools folder in C:\tools\Velociraptor
       ansible.windows.win_powershell: 

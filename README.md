@@ -74,6 +74,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Splunk](https://www.splunk.com/en_us/products/splunk-enterprise.html) | C:\tools\SplunkInstaller | Installer | 
 | [Docker](https://www.docker.com/) | N/A | Installed inside of WSL |
 | [Sysmon](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon) | C:\Windows\ | Installed as service to log all actions on the system |
+| [Zircolite](https://github.com/wagga40/Zircolite) | C:\tools\Zircolite | Source Code |
 
 The following KAPE plugins/addones were also added for KAPE installation in ```C:\tools\KAPE```:
 

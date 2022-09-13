@@ -109,6 +109,30 @@
       register: vsbuild_executable
       ignore_errors: yes 
       tags: tools
+
+    - name: Creating tools folder in C:\tools\Zircolite
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\Zircolite\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+     
+    - name: Downloading Zircolite package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.Zircolite }}"
+        dest: C:\tools\Zircolite\Zircolite.zip
+      ignore_errors: yes 
+      tags: tools  
+
+    - name: Unpacking Zircolite package
+      community.windows.win_unzip:
+        src: C:\tools\Zircolite\Zircolite.zip
+        dest: C:\tools\Zircolite\
+        delete_archive: yes
+        recurse: yes
+      poll: 0
+      async: 10000
+      tags: tools     
       
     - name: Creating tools folder in C:\tools\DidierStevensSuite
       ansible.windows.win_powershell: 

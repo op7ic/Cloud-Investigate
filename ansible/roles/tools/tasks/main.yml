@@ -110,6 +110,46 @@
       ignore_errors: yes 
       tags: tools
 
+    - name: Creating tools folder in C:\tools\RITA
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\RITA\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading RITA package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.RITA }}"
+        dest: C:\tools\RITA\RITA.zip
+      ignore_errors: yes
+      tags: tools  
+      
+    - name: Unpacking RITA package
+      community.windows.win_unzip:
+        src: C:\tools\RITA\RITA.zip
+        dest: C:\tools\RITA\
+        delete_archive: yes
+        recurse: yes
+      poll: 0
+      async: 10000
+      tags: tools
+     
+    - name: Creating tools folder in C:\tools\pestudio
+      ansible.windows.win_powershell: 
+        script: |
+            Md C:\tools\pestudio\ -ErrorAction SilentlyContinue
+      ignore_errors: yes 
+      tags: tools
+
+    - name: Downloading pestudio package
+      win_get_url:
+        url: "{{ config_file.tools.standalone.pestudio }}"
+        dest: C:\tools\pestudio\pestudio.zip
+      ignore_errors: yes
+      poll: 0
+      async: 10000
+      tags: tools  
+
     - name: Creating tools folder in C:\tools\Zircolite
       ansible.windows.win_powershell: 
         script: |
@@ -485,7 +525,11 @@
       tags: tools 
 
     - name: Merge in a registry file without comparing to current registry
-      ansible.windows.win_command: REG IMPORT C:\tools\sdelete.reg
+      ansible.windows.win_command: REG IMPORT /reg:64 C:\tools\sdelete.reg
+      tags: tools
+
+    - name: Merge in a registry file without comparing to current registry
+      ansible.windows.win_command: REG IMPORT /reg:32 C:\tools\sdelete.reg
       tags: tools 
 
     - name: Ensure that we refresh enviroment before calling specific tools

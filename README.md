@@ -75,6 +75,8 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Docker](https://www.docker.com/) | N/A | Installed inside of WSL |
 | [Sysmon](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon) | C:\Windows\ | Installed as service to log all actions on the system |
 | [Zircolite](https://github.com/wagga40/Zircolite) | C:\tools\Zircolite\ | Source Code |
+| [RITA](https://github.com/activecm/rita) | C:\tools\RITA\ | Source Code |
+| [PESTUDIO](https://www.winitor.com/tools/pestudio/current/pestudio.zip) | C:\tools\pestudio\ | Zipped tool suite |
 
 The following KAPE plugins/addones were also added for KAPE installation in ```C:\tools\KAPE```:
 

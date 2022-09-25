@@ -63,6 +63,7 @@
         script: |
           Add-MpPreference -ExclusionPath "C:\ProgramData\Chocolatey\*"
           Add-MpPreference -ExclusionPath "C:\tools\NirLauncher\*"
+          Add-MpPreference -ExclusionPath "C:\tools\*"
           Add-MpPreference -ExclusionPath "C:\Linux\*"
       ignore_unreachable: yes
       tags: baseline

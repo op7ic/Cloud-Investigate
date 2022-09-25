@@ -525,11 +525,11 @@
       tags: tools 
 
     - name: Merge in a registry file without comparing to current registry
-      ansible.windows.win_command: REG IMPORT /reg:64 C:\tools\sdelete.reg
+      ansible.windows.win_command: REG IMPORT C:\tools\sdelete.reg /reg:64 
       tags: tools
 
     - name: Merge in a registry file without comparing to current registry
-      ansible.windows.win_command: REG IMPORT /reg:32 C:\tools\sdelete.reg
+      ansible.windows.win_command: REG IMPORT C:\tools\sdelete.reg /reg:32
       tags: tools 
 
     - name: Ensure that we refresh enviroment before calling specific tools

@@ -129,6 +129,7 @@ sudo apt install ansible
 # Step 4 - Finally install python and various packages needed for remote connections and other activities
 sudo apt install python3 python3-pip
 pip3 install pywinrm requests msrest msrestazure azure-cli requests-ntlm
+pip3 install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt
 ```
 
 # Prerequisites for AWS

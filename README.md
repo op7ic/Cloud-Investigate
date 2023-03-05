@@ -109,7 +109,7 @@ The following KAPE plugins/addones were also added for KAPE installation in ```C
 
 A number of features need to be installed on your system in order to use this setup. Please follow steps below to ensure that CLI and API required by Azure/AWS are fully functional before deployment.
 
-```
+```bash
 # Step 1 - Install Azure CLI. More details on https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
@@ -133,7 +133,7 @@ pip3 install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.1
 ```
 
 # Prerequisites for AWS
-```
+```bash
 # Step 1 - Install AWS CLI. More details on https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -159,7 +159,7 @@ sudo apt install python3 python3-pip pywinrm requests requests-ntlm
 # Building and Deploying Cloud Investigate system
 
 Once all the [prerequisites](#prerequisites-for-azure) are installed, perform the following series of steps:
-```
+```bash
 # Log in to Azure or AWS from command line to ensure that the access token is valid or credentials are added for AWS:
 az login # For Azure
 aws configure # For AWS
@@ -188,7 +188,7 @@ A global YAML config file, [Azure variables.tf](azure/variables.tf) or [AWS vari
 
 Commands ```az vm image list``` (Azure) or ```aws ec2 describe-images``` (AWS) can be used to identify various OS versions so that global operating system file ([Azure variables.tf](azure/variables.tf) or [AWS variables.tf](aws/variables.tf) can be modified with the correspodning SKU or AMI. Examples of commands helping to identify specific AMI/SKU can be found below.
 
-```
+```bash
 # Azure
 
 # List all Windows workstation SKUs and images

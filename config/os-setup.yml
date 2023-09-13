@@ -72,7 +72,7 @@ sysmon:
 # Location of download links for various tools and plugins
 tools:
   standalone: 
-    velociraptor: https://github.com/Velocidex/velociraptor/releases/download/v0.6.5-0/velociraptor-v0.6.5-2-windows-amd64.exe
+    velociraptor: https://github.com/Velocidex/velociraptor/releases/download/v0.7.0/velociraptor-v0.7.0-2-windows-amd64.exe
     kape: https://s3.amazonaws.com/cyb-us-prd-kape/kape.zip
     wsl: https://aka.ms/wslubuntu2004
     ericzimmermantoolsv4: https://f001.backblazeb2.com/file/EricZimmermanTools/All.zip
@@ -102,27 +102,27 @@ tools:
     volatility2: https://github.com/volatilityfoundation/volatility/archive/refs/heads/master.zip
     plaso: https://github.com/log2timeline/plaso/archive/refs/heads/main.zip
   installers:
-    autopsy: https://github.com/sleuthkit/autopsy/releases/download/autopsy-4.19.3/autopsy-4.19.3-64bit.msi
+    autopsy: https://github.com/sleuthkit/autopsy/releases/download/autopsy-4.21.0/autopsy-4.21.0-64bit.msi
     sift: https://github.com/teamdfir/sift-cli/releases/download/v1.14.0-rc1/sift-cli-linux
     splunk: https://download.splunk.com/products/splunk/releases/8.2.6/windows/splunk-8.2.6-a6fe1ee8894b-x64-release.msi
   kape_plugins:
     KAPE_EZUpader: https://raw.githubusercontent.com/AndrewRathbun/KAPE-EZToolsAncillaryUpdater/main/KAPE-EZToolsAncillaryUpdater.ps1
-    reg_hunter: https://github.com/theflakes/reg_hunter/releases/download/0.6.0/reg_hunter-64.exe
-    SEPparser: https://github.com/Beercow/SEPparser/raw/master/bin/SEPparser.exe
+    reg_hunter: https://github.com/theflakes/reg_hunter/releases/download/v0.7.4/reg_hunter.exe
+    SEPparser: https://github.com/Beercow/SEPparser/releases/download/v2022.12.21/SEPparser.exe
     srum_dump: https://github.com/MarkBaggett/srum-dump/raw/python3/srum_dump_csv.exe
     OneDriveExplorer: https://github.com/Beercow/OneDriveExplorer/releases/download/v2022.06.17/OneDriveExplorer.exe
-    hindsight: https://github.com/obsidianforensics/hindsight/releases/download/v2021.12/hindsight.exe
+    hindsight: https://github.com/obsidianforensics/hindsight/releases/download/v2023.03/hindsight.exe
     dhparser: https://github.com/jklepsercyber/defender-detectionhistory-parser/blob/main/dhparser.exe
     CCMRUAFinder_RecentlyUsedApps: https://github.com/esecrpm/WMI_Forensics/raw/master/CCM_RUA_Finder.exe
     BMCCacheParse: https://github.com/dingtoffee/bmc-tools/blob/master/dist/bmc-tools.exe 
     sigcheck: https://live.sysinternals.com/sigcheck64.exe
-    INDXRipper: https://github.com/harelsegev/INDXRipper/releases/download/v5.2.6/INDXRipper-5.2.6-py3.9-amd64.zip
-    Chainsaw: https://github.com/WithSecureLabs/chainsaw/releases/download/v2.0.0/chainsaw_all_platforms+rules+examples.zip
-    hayabusa: https://github.com/Yamato-Security/hayabusa/releases/download/v1.5.0/hayabusa-1.5.0-all-windows.zip
+    INDXRipper: https://github.com/harelsegev/INDXRipper/releases/download/v5.2.8/INDXRipper-5.2.8-py3.9-amd64.zip
+    Chainsaw: https://github.com/WithSecureLabs/chainsaw/releases/download/v2.7.3/chainsaw_all_platforms+rules+examples.zip
+    hayabusa: https://github.com/Yamato-Security/hayabusa/releases/download/v2.8.0/hayabusa-2.8.0-all-platforms.zip
     LevelDBDumper: https://github.com/mdawsonuk/LevelDBDumper/releases/download/v2.0.2/LevelDBDumper.exe
     McAfeeStinger: https://downloadcenter.mcafee.com/products/mcafee-avert/stinger/stinger32.exe
     Kaspersky_TDSSKiller: http://media.kaspersky.com/utilities/VirusUtilities/EN/tdsskiller.exe
-    EvtxHussar: https://github.com/yarox24/EvtxHussar/releases/download/1.5/EvtxHussar1.5_windows_amd64.zip 
+    EvtxHussar: https://github.com/yarox24/EvtxHussar/releases/download/1.7/EvtxHussar1.7_windows_amd64.zip
     browsinghistoryview: https://www.nirsoft.net/utils/browsinghistoryview-x64.zip
     FullEventLogView: https://www.nirsoft.net/utils/fulleventlogview-x64.zip
     TurnedOnTimesView: https://www.nirsoft.net/utils/turnedontimesview.zip

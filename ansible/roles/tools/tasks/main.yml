@@ -230,24 +230,6 @@
       ignore_errors: yes 
       tags: tools
            
-    - name: Creating tools folder in C:\tools\brim
-      ansible.windows.win_powershell: 
-        script: |
-            Md C:\tools\brim\ -ErrorAction SilentlyContinue
-      ignore_errors: yes 
-      tags: tools
-
-    - name: Downloading Brim package
-      win_get_url:
-        url: "{{ config_file.tools.standalone.brim }}"
-        dest: C:\tools\brim\brim.exe
-      ignore_errors: yes 
-      tags: tools
-
-    - name: Installing Brim package
-      ansible.windows.win_command: cmd /c C:\tools\brim\brim.exe /S
-      ignore_errors: yes 
-      tags: tools    
 
     - name: Creating tools folder in C:\tools\BurpCommunity
       ansible.windows.win_powershell: 
@@ -313,43 +295,34 @@
       ansible.windows.win_powershell: 
         script: |
             Md C:\tools\ericzimmermantools\ -ErrorAction SilentlyContinue
-            Md C:\tools\ericzimmermantools\netv4 -ErrorAction SilentlyContinue
-            Md C:\tools\ericzimmermantools\netv6 -ErrorAction SilentlyContinue
+            Md C:\tools\ericzimmermantools\downloader -ErrorAction SilentlyContinue
       ignore_errors: yes 
       tags: tools
       
-    - name: Downloading ericzimmermantools v4 package
+    - name: Downloading ericzimmermantools package
       win_get_url:
-        url: "{{ config_file.tools.standalone.ericzimmermantoolsv4 }}"
-        dest: C:\tools\ericzimmermantools\Allv4.zip
+        url: "{{ config_file.tools.standalone.ericzimmermantools }}"
+        dest: C:\tools\ericzimmermantools\downloader\Get-ZimmermanTools.zip
       tags: tools
 
-    - name: Downloading ericzimmermantools v6 package
-      win_get_url:
-        url: "{{ config_file.tools.standalone.ericzimmermantoolsv6 }}"
-        dest: C:\tools\ericzimmermantools\Allv6.zip
-      tags: tools
-
-    - name: Unpacking ericzimmermantools v4 package
+    - name: Unpacking ericzimmermantools package
       community.windows.win_unzip:
-        src: C:\tools\ericzimmermantools\Allv4.zip
-        dest: C:\tools\ericzimmermantools\netv4\
+        src: C:\tools\ericzimmermantools\downloader\Get-ZimmermanTools.zip
+        dest: C:\tools\ericzimmermantools\downloader\
         delete_archive: yes
         recurse: yes
       poll: 0
       async: 10000
       tags: tools 
-
-    - name: Unpacking ericzimmermantools v6 package
-      community.windows.win_unzip:
-        src: C:\tools\ericzimmermantools\Allv6.zip
-        dest: C:\tools\ericzimmermantools\netv6\
-        delete_archive: yes
-        recurse: yes
+      
+    - name: Downloading ericzimmermantools package
+      ansible.windows.win_powershell: 
+        script: |
+            powershell -exec bypass -c "C:\tools\ericzimmermantools\downloader\Get-ZimmermanTools\Get-ZimmermanTools.ps1 -Dest C:\tools\ericzimmermantools\"
       poll: 0
       async: 10000
-      tags: tools       
-
+      tags: tools 
+            
     - name: Creating tools folder in C:\tools\ArsenalTools
       ansible.windows.win_powershell: 
         script: |
@@ -405,58 +378,6 @@
       poll: 0
       async: 10000
       tags: tools
-
-    - name: Creating tools folder in C:\tools\MandiantTools
-      ansible.windows.win_powershell: 
-        script: |
-            Md C:\tools\MandiantTools\ -ErrorAction SilentlyContinue
-      ignore_errors: yes 
-      tags: tools    
-
-    - name: Downloading Fireeye_Redline package
-      win_get_url:
-        url: "{{ config_file.tools.standalone.Fireeye_Redline }}"
-        dest: C:\tools\MandiantTools\
-      tags: tools
-      
-    - name: Unpacking Fireeye_Redline package
-      community.windows.win_unzip:
-        src: C:\\tools\\MandiantTools\\sdl-redline.zip
-        dest: C:\\tools\\MandiantTools\\
-        delete_archive: yes
-      poll: 0
-      async: 10000
-      tags: tools 
-      
-    - name: Downloading Fireeye_Memoryze package
-      win_get_url:
-        url: "{{ config_file.tools.standalone.Fireeye_Memoryze }}"
-        dest: C:\tools\MandiantTools\
-      tags: tools
-
-    - name: Unpacking Fireeye_Memoryze package
-      community.windows.win_unzip:
-        src: C:\\tools\\MandiantTools\\sdl-memoryze.zip
-        dest: C:\\tools\\MandiantTools\\
-        delete_archive: yes
-      poll: 0
-      async: 10000
-      tags: tools 
-
-    - name: Downloading Fireeye_Highlighter package
-      win_get_url:
-        url: "{{ config_file.tools.standalone.Fireeye_Highlighter }}"
-        dest: C:\tools\MandiantTools\
-      tags: tools
-
-    - name: Unpacking Fireeye_Highlighter package
-      community.windows.win_unzip:
-        src: C:\\tools\\MandiantTools\\sdl-highlighter.zip
-        dest: C:\\tools\\MandiantTools\\
-        delete_archive: yes
-      poll: 0
-      async: 10000
-      tags: tools 
 
     - name: Creating tools folder in C:\tools\SysinternalsSuite
       ansible.windows.win_powershell: 

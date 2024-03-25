@@ -25,9 +25,6 @@ The following tools are currently deployed in the default configuration of Cloud
 | [Arsenal HIBN Recon](https://mega.nz/file/i04RjYJI#yqyrgECgUjKxwGSCsvx-fhvwkICGTr2z7OihTJoeWys) | C:\Tools\ArsenalTools\ | Installer  |
 | [Arsenal ODC Recon](https://mega.nz/file/604lWb4Z#Tn3ePIlMaGOSmTfuCMKaEeLRyTU0S4uCekZQJzKttCQ) | C:\Tools\ArsenalTools\ | Installer |
 | [Burp Community Edition](https://portswigger-cdn.net/burp/releases/download?product=community&version=2022.7.1&type=WindowsX64) | C:\Program Files\BurpSuiteCommunity\ | Installed tool |
-| [Fireeye Redline](https://fireeye.market/apps/211364) | C:\Tools\MandiantTools\ | Installer |
-| [Fireeye Memoryze](https://fireeye.market/apps/211368) | C:\Tools\MandiantTools\ | Installer  |
-| [Fireeye Highlighter](https://fireeye.market/apps/211376) | C:\Tools\MandiantTools\ | Installer  |
 | [Velociraptor](https://docs.velociraptor.app/docs/) | C:\Tools\Velociraptor\ | Unzipped tool suite |
 | [Kape](https://www.kroll.com/en/insights/publications/cyber/kroll-artifact-parser-extractor-kape) | C:\tools\KAPE\ | Unzipped tool suite |
 | [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install) | C:\Linux | Installed tool |
@@ -58,8 +55,7 @@ The following tools are currently deployed in the default configuration of Cloud
 | [yara](https://community.chocolatey.org/packages/yara) | C:\ProgramData\Chocolatey | Installed and added to PATH | 
 | [powertoys](https://community.chocolatey.org/packages/powertoys) | C:\Program Files\PowerToys | Installed tool | 
 | [virtualmachineconverter](https://community.chocolatey.org/packages/virtualmachineconverter) | C:\Program Files\Microsoft Virtual Machine Converter | Installed tool | 
-| [HashCheck](https://community.chocolatey.org/packages/HashCheck) | C:\Program Files\HashCheck | Installed and added as a menu option |  
-| [Brim](https://github.com/brimdata/brim) | C:\Users\\<user>\AppData\Local\Programs\brim\ | Installed tool |  
+| [HashCheck](https://community.chocolatey.org/packages/HashCheck) | C:\Program Files\HashCheck | Installed and added as a menu option |   
 | [Plaso](https://github.com/log2timeline/plaso) | C:\tools\plaso | Source Code |
 | [volatility3](https://github.com/volatilityfoundation/volatility3) | C:\tools\volatility3\ | Source Code |
 | [SANS Sift packages (200+)](https://www.sans.org/tools/sift-workstation/) | C:\Linux\download\ | Tool installed inside WSL via nohup job |

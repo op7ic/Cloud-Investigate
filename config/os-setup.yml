@@ -72,23 +72,18 @@ sysmon:
 # Location of download links for various tools and plugins
 tools:
   standalone: 
-    velociraptor: https://github.com/Velocidex/velociraptor/releases/download/v0.7.0/velociraptor-v0.7.0-2-windows-amd64.exe
+    velociraptor: https://github.com/Velocidex/velociraptor/releases/download/v0.7.1/velociraptor-v0.7.1-1-windows-amd64.exe
     kape: https://s3.amazonaws.com/cyb-us-prd-kape/kape.zip
     wsl: https://aka.ms/wslubuntu2004
-    ericzimmermantoolsv4: https://f001.backblazeb2.com/file/EricZimmermanTools/All.zip
-    ericzimmermantoolsv6: https://f001.backblazeb2.com/file/EricZimmermanTools/net6/All_6.zip
-    Aresnal_Image_Mouter: https://mega.nz/file/vsJVGI5D#cyBkjLKIxskTS3q5J0pW19swgykBwK6_ofzjJOmg2MA
+    ericzimmermantools: https://f001.backblazeb2.com/file/EricZimmermanTools/Get-ZimmermanTools.zip # TODO
+    Aresnal_Image_Mouter: https://mega.nz/file/mopUjYAa#Y6F-BkJ6svDkxI0WNevPle6xS7zWuioajgbUdkGq4Ws
     Arsenal_Registry_Recon: https://mega.nz/file/PwJGXTQZ#Py3NGbvkkJzeEAoCJ9aghdyVuP1Augfa5Hz-jRATNEs
     Arsenal_Hive_Recon: https://mega.nz/file/GxpD2CIa#ADTUWZrX328ijGXNTfe6sxKLkNMkXsu6w3s7b2EdZ8s
-    Arsenal_Hibernation_Recon: https://mega.nz/file/Kl4AzBTI#gEWZCXQPzVjyuCwfMVvePVsAwl3_IZ0LRpeY0AkGL-c
+    Arsenal_Hibernation_Recon: https://mega.nz/file/z4Q2iD4C#1I8eFUnuV-x-OOuFJ7G-8YWcNPDfrV26w3aL2mnqGPI
     Arsenal_HIBN_Recon: https://mega.nz/file/i04RjYJI#yqyrgECgUjKxwGSCsvx-fhvwkICGTr2z7OihTJoeWys
     Arsenal_ODC_Recon: https://mega.nz/file/604lWb4Z#Tn3ePIlMaGOSmTfuCMKaEeLRyTU0S4uCekZQJzKttCQ
-    Fireeye_Redline: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-redline.zip
-    Fireeye_Memoryze: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-memoryze.zip
-    Fireeye_Highlighter: https://www.fireeye.com/content/dam/fireeye-www/services/freeware/sdl-highlighter.zip
     Sysinternals: https://download.sysinternals.com/files/SysinternalsSuite.zip
-    brim: https://github.com/brimdata/brim/releases/download/v0.31.0/Brim-Setup-0.31.0.exe
-    burp: https://portswigger-cdn.net/burp/releases/download?product=community&version=2022.7.1&type=WindowsX64
+    burp: https://portswigger-cdn.net/burp/releases/download?product=community&version=2024.1.1.6&type=WindowsX64
     OSForensic: https://osforensics.com/downloads/osf.exe
     OSFMount: https://www.osforensics.com/downloads/osfmount.exe
     VolatilityWorkbench: https://www.osforensics.com/downloads/VolatilityWorkbench.zip
@@ -110,26 +105,24 @@ tools:
     reg_hunter: https://github.com/theflakes/reg_hunter/releases/download/v0.7.4/reg_hunter.exe
     SEPparser: https://github.com/Beercow/SEPparser/releases/download/v2022.12.21/SEPparser.exe
     srum_dump: https://github.com/MarkBaggett/srum-dump/raw/python3/srum_dump_csv.exe
-    OneDriveExplorer: https://github.com/Beercow/OneDriveExplorer/releases/download/v2022.06.17/OneDriveExplorer.exe
+    OneDriveExplorer: https://github.com/Beercow/OneDriveExplorer/releases/download/v2024.03.22/ODE.zip
     hindsight: https://github.com/obsidianforensics/hindsight/releases/download/v2023.03/hindsight.exe
     dhparser: https://github.com/jklepsercyber/defender-detectionhistory-parser/blob/main/dhparser.exe
     CCMRUAFinder_RecentlyUsedApps: https://github.com/esecrpm/WMI_Forensics/raw/master/CCM_RUA_Finder.exe
     BMCCacheParse: https://github.com/dingtoffee/bmc-tools/blob/master/dist/bmc-tools.exe 
     sigcheck: https://live.sysinternals.com/sigcheck64.exe
-    INDXRipper: https://github.com/harelsegev/INDXRipper/releases/download/v5.2.8/INDXRipper-5.2.8-py3.9-amd64.zip
-    Chainsaw: https://github.com/WithSecureLabs/chainsaw/releases/download/v2.7.3/chainsaw_all_platforms+rules+examples.zip
-    hayabusa: https://github.com/Yamato-Security/hayabusa/releases/download/v2.8.0/hayabusa-2.8.0-all-platforms.zip
-    LevelDBDumper: https://github.com/mdawsonuk/LevelDBDumper/releases/download/v2.0.2/LevelDBDumper.exe
-    McAfeeStinger: https://downloadcenter.mcafee.com/products/mcafee-avert/stinger/stinger32.exe
-    Kaspersky_TDSSKiller: http://media.kaspersky.com/utilities/VirusUtilities/EN/tdsskiller.exe
+    INDXRipper: https://github.com/harelsegev/INDXRipper/releases/download/v20231117/INDXRipper-20231117-py3.12-amd64.zip
+    Chainsaw: https://github.com/WithSecureLabs/chainsaw/releases/download/v2.8.1/chainsaw_all_platforms+rules+examples.zip
+    hayabusa: https://github.com/Yamato-Security/hayabusa/releases/download/v2.13.0/hayabusa-2.13.0-all-platforms.zip
+    LevelDBDumper: https://github.com/mdawsonuk/LevelDBDumper/releases/download/v3.0.0-beta.1/LevelDBDumper.exe
     EvtxHussar: https://github.com/yarox24/EvtxHussar/releases/download/1.7/EvtxHussar1.7_windows_amd64.zip
     browsinghistoryview: https://www.nirsoft.net/utils/browsinghistoryview-x64.zip
     FullEventLogView: https://www.nirsoft.net/utils/fulleventlogview-x64.zip
     TurnedOnTimesView: https://www.nirsoft.net/utils/turnedontimesview.zip
     usbdeview: https://www.nirsoft.net/utils/usbdeview-x64.zip
     RegRipper: https://github.com/keydet89/RegRipper3.0/archive/refs/heads/master.zip
-    CAFAE: https://tzworks.com/prototypes/cafae/cafae64.v.0.76.win.zip
-    evtwalk64: https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.60.win.zip
+    CAFAE: https://tzworks.com/prototypes/cafae/cafae64.v.0.78.win.zip
+    evtwalk64: https://tzworks.com/prototypes/evtwalk/evtwalk64.v.0.63.win.zip 
     
     
     
